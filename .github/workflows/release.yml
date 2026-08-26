@@ -24,7 +24,9 @@ jobs:
       - name: Test
         run: npm test
       - name: Build release files
-        run: npm run dist
+        run: |
+          npm run build
+          npx electron-builder --publish never
       - name: Publish release files
         shell: pwsh
         run: |
