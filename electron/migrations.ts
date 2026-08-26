@@ -13,6 +13,7 @@ CREATE INDEX idx_sessions_profile_status ON sessions(profile_id,status);`,
 `ALTER TABLE profiles ADD COLUMN active_seconds INTEGER NOT NULL DEFAULT 0;`,
 `CREATE TABLE verse_notes(profile_id INTEGER NOT NULL,book_id TEXT NOT NULL,chapter INTEGER NOT NULL,verse INTEGER NOT NULL,note TEXT NOT NULL,updated_at TEXT NOT NULL,PRIMARY KEY(profile_id,book_id,chapter,verse));
 CREATE TABLE bookmarks(profile_id INTEGER NOT NULL,book_id TEXT NOT NULL,chapter INTEGER NOT NULL,verse INTEGER NOT NULL,created_at TEXT NOT NULL,PRIMARY KEY(profile_id,book_id,chapter,verse));`
+,`ALTER TABLE book_stats ADD COLUMN last_question_count INTEGER;`
 ];
 
 export const contentSchema=`CREATE TABLE metadata(key TEXT PRIMARY KEY,value TEXT NOT NULL);
