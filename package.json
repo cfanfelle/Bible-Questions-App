@@ -1,6 +1,6 @@
 {
   "name": "bible-questions-app",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A private, fully offline Bible learning desktop application",
   "author": "Bible Questions App Project",
   "main": "dist-electron/electron/main.js",
@@ -38,11 +38,43 @@
   "build": {
     "appId": "org.selahbible.desktop",
     "productName": "Bible Questions App",
-    "publish": [{ "provider": "github", "owner": "cfanfelle", "repo": "Bible-Questions-App", "releaseType": "release" }],
-    "asarUnpack": ["**/*.node"],
-    "files": ["dist/**/*", "dist-electron/**/*", "electron/preload.cjs", "package.json"],
-    "extraResources": [{ "from": "content/engwebp_vpl.txt", "to": "content/engwebp_vpl.txt" }],
-    "win": { "target": [{ "target": "nsis", "arch": ["x64"] }] },
-    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true, "createDesktopShortcut": true }
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "cfanfelle",
+        "repo": "Bible-Questions-App",
+        "releaseType": "release"
+      }
+    ],
+    "asarUnpack": [
+      "**/*.node"
+    ],
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "electron/preload.cjs",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "content/engwebp_vpl.txt",
+        "to": "content/engwebp_vpl.txt"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    }
   }
 }
