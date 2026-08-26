@@ -19,8 +19,7 @@ const QUESTIONS:[string,string,number,number,number,string,string,string,string,
  ['GEN-000008','GEN',2,20,20,'Who named all the livestock, birds, and wild animals?','God','Eve','Adam','Noah',2],
  ['GEN-000009','GEN',2,22,22,'What did God make Eve with?','Dust from the ground',"Adam's rib",'Clay from the earth','A branch from the tree of life',1],
  ['GEN-000010','GEN',3,24,24,'After Adam and Eve ate from the tree of knowledge of good and evil, what did God use to guard the way to the tree of life?','Angels and a wall of fire','Cherubim and a flaming sword','A pillar of fire and a cloud','Cherubim and a wall of thorns',1],
- ['GEN-000011','GEN',3,13,13,'What animal deceived Eve into eating the forbidden fruit?','A lion','A serpent','A raven','A wolf',1],
- ['JHN-000001','JHN',3,16,17,'Why did God send his Son into the world?','To condemn it','To rule Rome','That the world should be saved through him','To establish an earthly kingdom',2]
+ ['GEN-000011','GEN',3,13,13,'What animal deceived Eve into eating the forbidden fruit?','A lion','A serpent','A raven','A wolf',1]
 ];
 
 export function ensureContent(path:string, webVerseFile?:string){
@@ -43,11 +42,11 @@ export function ensureContent(path:string, webVerseFile?:string){
  repairQuestion.run('GEN-000001','GEN',1,1,1,'What did God create in the beginning?','The heavens and the earth','Only the sea','The sun and moon','Humankind',0);
  repairQuestion.run('GEN-000002','GEN',1,3,3,'What happened when God said, “Let there be light”?','The stars appeared','There was light','Night began','The waters divided',1);
  repairQuestion.run('JHN-000001','JHN',3,16,17,'Why did God send his Son into the world?','To condemn it','To rule Rome','That the world should be saved through him','To establish an earthly kingdom',2);
- // Replacing by ID updates existing installations as the curated bank evolves.
+ // The curated list is the sole source of quiz questions, including for existing installs.
  const curatedQuestion=db.prepare('INSERT OR REPLACE INTO questions VALUES(?,?,?,?,?,?,?,?,?,?,?)');
- const syncQuestions=db.transaction(()=>QUESTIONS.forEach(question=>curatedQuestion.run(...question)));
+ const syncQuestions=db.transaction(()=>{db.prepare('DELETE FROM questions').run();QUESTIONS.forEach(question=>curatedQuestion.run(...question))});
  syncQuestions();
- db.prepare('INSERT OR REPLACE INTO metadata(key,value) VALUES(?,?)').run('question_bank_version','1.1-genesis');
+ db.prepare('INSERT OR REPLACE INTO metadata(key,value) VALUES(?,?)').run('question_bank_version','1.2-personal');
  if(webVerseFile&&fs.existsSync(webVerseFile)){
   const count=(db.prepare('SELECT COUNT(*) count FROM verses').get() as {count:number}).count;
   if(count<30000){

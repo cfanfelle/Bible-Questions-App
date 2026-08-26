@@ -1,6 +1,6 @@
 {
   "name": "bible-questions-app",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A private, fully offline Bible learning desktop application",
   "author": "Bible Questions App Project",
   "main": "dist-electron/electron/main.js",
