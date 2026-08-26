@@ -10,7 +10,9 @@ CREATE TABLE reading_positions(profile_id INTEGER PRIMARY KEY,book_id TEXT NOT N
 CREATE TABLE daily_questions(profile_id INTEGER NOT NULL,local_date TEXT NOT NULL,question_id TEXT NOT NULL,selected_choice INTEGER,correct_choice INTEGER,is_correct INTEGER,answered_at TEXT,PRIMARY KEY(profile_id,local_date));
 CREATE TABLE unlocked_banners(profile_id INTEGER NOT NULL,banner TEXT NOT NULL,unlocked_at TEXT NOT NULL,PRIMARY KEY(profile_id,banner));
 CREATE INDEX idx_sessions_profile_status ON sessions(profile_id,status);`,
-`ALTER TABLE profiles ADD COLUMN active_seconds INTEGER NOT NULL DEFAULT 0;`
+`ALTER TABLE profiles ADD COLUMN active_seconds INTEGER NOT NULL DEFAULT 0;`,
+`CREATE TABLE verse_notes(profile_id INTEGER NOT NULL,book_id TEXT NOT NULL,chapter INTEGER NOT NULL,verse INTEGER NOT NULL,note TEXT NOT NULL,updated_at TEXT NOT NULL,PRIMARY KEY(profile_id,book_id,chapter,verse));
+CREATE TABLE bookmarks(profile_id INTEGER NOT NULL,book_id TEXT NOT NULL,chapter INTEGER NOT NULL,verse INTEGER NOT NULL,created_at TEXT NOT NULL,PRIMARY KEY(profile_id,book_id,chapter,verse));`
 ];
 
 export const contentSchema=`CREATE TABLE metadata(key TEXT PRIMARY KEY,value TEXT NOT NULL);

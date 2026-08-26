@@ -23,7 +23,13 @@ jobs:
         run: npm ci
       - name: Test
         run: npm test
-      - name: Build and publish release
-        run: npm run release
+      - name: Build release files
+        run: npm run dist
+      - name: Publish release files
+        shell: pwsh
+        run: |
+          $assets = Get-ChildItem dist -File | Where-Object { $_.Name -eq 'latest.yml' -or $_.Extension -in '.exe','.blockmap' } | ForEach-Object { $_.FullName }
+          if ($assets.Count -lt 3) { throw "Expected installer, block map, and latest.yml." }
+          gh release create $env:GITHUB_REF_NAME @assets --title $env:GITHUB_REF_NAME --generate-notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
