@@ -30,7 +30,11 @@ jobs:
       - name: Publish release files
         shell: pwsh
         run: |
-          $assets = Get-ChildItem dist -File | Where-Object { $_.Name -eq 'latest.yml' -or $_.Extension -in '.exe','.blockmap' } | ForEach-Object { $_.FullName }
+          Get-ChildItem dist -File | Where-Object { $_.Extension -in '.exe','.blockmap' } | ForEach-Object {
+            $normalized = $_.Name.Replace(' ', '-')
+            if ($normalized -ne $_.Name) { Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $_.DirectoryName $normalized) }
+          }
+          $assets = Get-ChildItem dist -File | Where-Object { $_.Name -eq 'latest.yml' -or (($_.Extension -in '.exe','.blockmap') -and $_.Name -notmatch ' ') } | ForEach-Object { $_.FullName }
           if ($assets.Count -lt 3) { throw "Expected installer, block map, and latest.yml." }
           gh release create $env:GITHUB_REF_NAME @assets --title $env:GITHUB_REF_NAME --generate-notes
         env:
