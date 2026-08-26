@@ -3,9 +3,11 @@ import { ensureContent } from './content.js';
 import path from 'node:path';
 
 describe('content database seeding', () => {
-  it('creates all sample questions and can be run again safely', () => {
+  it('creates the curated question bank with all Genesis questions', () => {
     const db = ensureContent(':memory:');
-    expect((db.prepare('SELECT COUNT(*) count FROM questions').get() as {count:number}).count).toBe(3);
+    expect((db.prepare('SELECT COUNT(*) count FROM questions').get() as {count:number}).count).toBe(12);
+    expect((db.prepare("SELECT COUNT(*) count FROM questions WHERE book_id='GEN'").get() as {count:number}).count).toBe(11);
+    expect((db.prepare("SELECT answer_b,correct_index FROM questions WHERE id='GEN-000001'").get() as {answer_b:string;correct_index:number})).toEqual({answer_b:'Land and seas',correct_index:1});
     db.close();
   });
   it('imports the complete 66-book WEB canon with mapped book identifiers', () => {

@@ -8,6 +8,21 @@ export const BOOKS:[string,string,'OT'|'NT',number][]=[
 
 const WEB_BOOK_IDS:Record<string,string>={SOL:'SNG',EZE:'EZK',JOE:'JOL',MAR:'MRK',JOH:'JHN',PHI:'PHP',JAM:'JAS','1JO':'1JN','2JO':'2JN','3JO':'3JN'};
 
+const QUESTIONS:[string,string,number,number,number,string,string,string,string,string,number][]=[
+ ['GEN-000001','GEN',1,9,13,'What did God create on the third day?','The sun and the moon','Land and seas','Birds and fish','Man and animals',1],
+ ['GEN-000002','GEN',1,1,5,'What did God create on the first day?','The sky','Light','Land and seas','The sun and moon',1],
+ ['GEN-000003','GEN',1,20,23,'What did God create on the fifth day?','Land animals and mankind','Plants and trees','Birds and creatures of the sea','The sun, moon, and stars',2],
+ ['GEN-000004','GEN',2,7,7,'What did God form man from?','Clay from the river','Dust of the ground','Sand from the sea','Stone from the earth',1],
+ ['GEN-000005','GEN',2,9,9,'What trees were in the middle of the Garden of Eden?','The tree of life and the tree of knowledge of good and evil','The tree of wisdom and the tree of life','The tree of knowledge and the tree of judgment','The tree of blessing and the tree of wisdom',0],
+ ['GEN-000006','GEN',2,10,14,'What four rivers did the river watering the Garden of Eden split into?','Jordan, Nile, Tigris, and Euphrates','Pishon, Gihon, Tigris, and Euphrates','Pishon, Jordan, Nile, and Gihon','Gihon, Jordan, Tigris, and Nile',1],
+ ['GEN-000007','GEN',2,16,17,'What tree did God command Adam not to eat from?','The tree of life','The tree of wisdom','The tree of knowledge of good and evil','The tree in the eastern part of the garden',2],
+ ['GEN-000008','GEN',2,20,20,'Who named all the livestock, birds, and wild animals?','God','Eve','Adam','Noah',2],
+ ['GEN-000009','GEN',2,22,22,'What did God make Eve with?','Dust from the ground',"Adam's rib",'Clay from the earth','A branch from the tree of life',1],
+ ['GEN-000010','GEN',3,24,24,'After Adam and Eve ate from the tree of knowledge of good and evil, what did God use to guard the way to the tree of life?','Angels and a wall of fire','Cherubim and a flaming sword','A pillar of fire and a cloud','Cherubim and a wall of thorns',1],
+ ['GEN-000011','GEN',3,13,13,'What animal deceived Eve into eating the forbidden fruit?','A lion','A serpent','A raven','A wolf',1],
+ ['JHN-000001','JHN',3,16,17,'Why did God send his Son into the world?','To condemn it','To rule Rome','That the world should be saved through him','To establish an earthly kingdom',2]
+];
+
 export function ensureContent(path:string, webVerseFile?:string){
  const db=new Database(path); db.pragma('journal_mode = WAL');
  if(!db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='metadata'").get()){
@@ -28,6 +43,11 @@ export function ensureContent(path:string, webVerseFile?:string){
  repairQuestion.run('GEN-000001','GEN',1,1,1,'What did God create in the beginning?','The heavens and the earth','Only the sea','The sun and moon','Humankind',0);
  repairQuestion.run('GEN-000002','GEN',1,3,3,'What happened when God said, “Let there be light”?','The stars appeared','There was light','Night began','The waters divided',1);
  repairQuestion.run('JHN-000001','JHN',3,16,17,'Why did God send his Son into the world?','To condemn it','To rule Rome','That the world should be saved through him','To establish an earthly kingdom',2);
+ // Replacing by ID updates existing installations as the curated bank evolves.
+ const curatedQuestion=db.prepare('INSERT OR REPLACE INTO questions VALUES(?,?,?,?,?,?,?,?,?,?,?)');
+ const syncQuestions=db.transaction(()=>QUESTIONS.forEach(question=>curatedQuestion.run(...question)));
+ syncQuestions();
+ db.prepare('INSERT OR REPLACE INTO metadata(key,value) VALUES(?,?)').run('question_bank_version','1.1-genesis');
  if(webVerseFile&&fs.existsSync(webVerseFile)){
   const count=(db.prepare('SELECT COUNT(*) count FROM verses').get() as {count:number}).count;
   if(count<30000){
