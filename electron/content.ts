@@ -19,7 +19,17 @@ const QUESTIONS:[string,string,number,number,number,string,string,string,string,
  ['GEN-000008','GEN',2,20,20,'Who named all the livestock, birds, and wild animals?','God','Eve','Adam','Noah',2],
  ['GEN-000009','GEN',2,22,22,'What did God make Eve with?','Dust from the ground',"Adam's rib",'Clay from the earth','A branch from the tree of life',1],
  ['GEN-000010','GEN',3,24,24,'After Adam and Eve ate from the tree of knowledge of good and evil, what did God use to guard the way to the tree of life?','Angels and a wall of fire','Cherubim and a flaming sword','A pillar of fire and a cloud','Cherubim and a wall of thorns',1],
- ['GEN-000011','GEN',3,13,13,'What animal deceived Eve into eating the forbidden fruit?','A lion','A serpent','A raven','A wolf',1]
+ ['GEN-000011','GEN',3,13,13,'What animal deceived Eve into eating the forbidden fruit?','A lion','A serpent','A raven','A wolf',1],
+ ['GEN-000012','GEN',4,8,8,'Who did Cain kill?','Adam','Abel','Enoch','Lamech',1],
+ ['GEN-000013','GEN',4,25,25,"What was the name of Adam's third son?",'Abel','Enoch','Seth','Lamech',2],
+ ['GEN-000014','GEN',5,1,1,'In whose likeness did God create man?',"Adam's","The angels'","God's","The animals'",2],
+ ['GEN-000015','GEN',5,5,5,'How old was Adam when he died?','900 years old','930 years old','950 years old','969 years old',1],
+ ['GEN-000016','GEN',5,24,24,'Who did not die, but was taken away by God?','Seth','Methuselah','Enoch','Noah',2],
+ ['GEN-000017','GEN',5,32,32,"Who were Noah's three sons?",'Shem, Ham, and Japheth','Cain, Abel, and Seth','Enoch, Lamech, and Seth','Abraham, Nahor, and Haran',0],
+ ['GEN-000018','GEN',8,4,4,"Where did Noah's ark come to rest after the waters receded?",'The mountains of Ararat','Mount Sinai','The mountains of Moab','Mount Carmel',0],
+ ['GEN-000019','GEN',8,7,7,'What was the first bird Noah sent out to see how far the water had receded?','Dove','Eagle','Raven','Sparrow',2],
+ ['GEN-000020','GEN',8,8,8,'What did Noah send out to see if the water had receded from the surface of the ground?','Raven','Dove','Eagle','Sparrow',1],
+ ['GEN-000021','GEN',8,11,11,'What did the dove bring back to Noah the second time it returned?','A fig leaf','An olive leaf','A small branch','A cluster of grapes',1]
 ];
 
 export function ensureContent(path:string, webVerseFile?:string){
@@ -46,7 +56,7 @@ export function ensureContent(path:string, webVerseFile?:string){
  const curatedQuestion=db.prepare('INSERT OR REPLACE INTO questions VALUES(?,?,?,?,?,?,?,?,?,?,?)');
  const syncQuestions=db.transaction(()=>{db.prepare('DELETE FROM questions').run();QUESTIONS.forEach(question=>curatedQuestion.run(...question))});
  syncQuestions();
- db.prepare('INSERT OR REPLACE INTO metadata(key,value) VALUES(?,?)').run('question_bank_version','1.2-personal');
+ db.prepare('INSERT OR REPLACE INTO metadata(key,value) VALUES(?,?)').run('question_bank_version','1.3-personal');
  if(webVerseFile&&fs.existsSync(webVerseFile)){
   const count=(db.prepare('SELECT COUNT(*) count FROM verses').get() as {count:number}).count;
   if(count<30000){
