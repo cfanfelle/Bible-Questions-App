@@ -7,6 +7,12 @@ export const BOOKS:[string,string,'OT'|'NT',number][]=[
 ];
 
 const WEB_BOOK_IDS:Record<string,string>={SOL:'SNG',EZE:'EZK',JOE:'JOL',MAR:'MRK',JOH:'JHN',PHI:'PHP',JAM:'JAS','1JO':'1JN','2JO':'2JN','3JO':'3JN'};
+export const TRANSLATIONS=[
+ {id:'BSB',name:'Berean Standard Bible',abbreviation:'BSB',description:'Modern and balanced',license:'Public Domain',sortOrder:1},
+ {id:'WEB',name:'World English Bible',abbreviation:'WEB',description:'Formal modern English',license:'Public Domain',sortOrder:2},
+ {id:'KJV',name:'King James Version',abbreviation:'KJV',description:'Traditional English',license:'Public Domain outside the United Kingdom',sortOrder:3}
+] as const;
+export interface BibleSource {translationId:string;file:string}
 
 const QUESTIONS:[string,string,number,number,number,string,string,string,string,string,number][]=[
  ['GEN-000001','GEN',1,9,13,'What did God create on the third day?','The sun and the moon','Land and seas','Birds and fish','Man and animals',1],
@@ -32,21 +38,31 @@ const QUESTIONS:[string,string,number,number,number,string,string,string,string,
  ['GEN-000021','GEN',8,11,11,'What did the dove bring back to Noah the second time it returned?','A fig leaf','An olive leaf','A small branch','A cluster of grapes',1]
 ];
 
-export function ensureContent(path:string, webVerseFile?:string){
+export function ensureContent(path:string, bibleSources:BibleSource[]=[]){
  const db=new Database(path); db.pragma('journal_mode = WAL');
  if(!db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='metadata'").get()){
   db.exec(contentSchema);
   const book=db.prepare('INSERT INTO books VALUES(?,?,?,?,?)'); BOOKS.forEach((b,i)=>book.run(b[0],b[1],b[2],i+1,b[3]));
   db.prepare('INSERT INTO metadata VALUES (?,?)').run('question_bank_version','1.0-sample');
   const animal=db.prepare('INSERT INTO animals VALUES(?,?,?,?,?)'); [['lamb','Lamb','🐑',1],['dove','Dove','🕊️',1],['fish','Fish','🐟',1],['donkey','Donkey','🫏',1],['goat','Goat','🐐',1],['camel','Camel','🐫',1],['eagle','Eagle','🦅',25],['deer','Deer','🦌',50],['ox','Ox','🐂',100],['lion','Lion','🦁',1000]].forEach((a,i)=>animal.run(...a,i));
-  const verse=db.prepare('INSERT INTO verses VALUES(?,?,?,?)');
-  [[1,'In the beginning, God created the heavens and the earth.'],[2,'The earth was formless and empty. Darkness was on the surface of the deep and God’s Spirit was hovering over the surface of the waters.'],[3,'God said, “Let there be light,” and there was light.'],[4,'God saw the light, and saw that it was good. God divided the light from the darkness.'],[5,'God called the light “day”, and the darkness he called “night”. There was evening and there was morning, the first day.']].forEach(v=>verse.run('GEN',1,...v));
-  [[16,'For God so loved the world, that he gave his only born Son, that whoever believes in him should not perish, but have eternal life.'],[17,'For God didn’t send his Son into the world to judge the world, but that the world should be saved through him.']].forEach(v=>verse.run('JHN',3,...v));
+  const verse=db.prepare('INSERT INTO verses VALUES(?,?,?,?,?)');
+  [[1,'In the beginning, God created the heavens and the earth.'],[2,'The earth was formless and empty. Darkness was on the surface of the deep and God’s Spirit was hovering over the surface of the waters.'],[3,'God said, “Let there be light,” and there was light.'],[4,'God saw the light, and saw that it was good. God divided the light from the darkness.'],[5,'God called the light “day”, and the darkness he called “night”. There was evening and there was morning, the first day.']].forEach(v=>verse.run('BSB','GEN',1,...v));
+  [[16,'For God so loved the world, that he gave his only born Son, that whoever believes in him should not perish, but have eternal life.'],[17,'For God didn’t send his Son into the world to judge the world, but that the world should be saved through him.']].forEach(v=>verse.run('BSB','JHN',3,...v));
   const q=db.prepare('INSERT INTO questions VALUES(?,?,?,?,?,?,?,?,?,?,?)');
   q.run('GEN-000001','GEN',1,1,1,'What did God create in the beginning?','The heavens and the earth','Only the sea','The sun and moon','Humankind',0);
   q.run('GEN-000002','GEN',1,3,3,'What happened when God said, “Let there be light”?','The stars appeared','There was light','Night began','The waters divided',1);
   q.run('JHN-000001','JHN',3,16,17,'Why did God send his Son into the world?','To condemn it','To rule Rome','That the world should be saved through him','To establish an earthly kingdom',2);
  }
+ const verseColumns=(db.prepare('PRAGMA table_info(verses)').all() as unknown as {name:string}[]).map(column=>column.name);
+ if(!verseColumns.includes('translation_id')){
+  db.transaction(()=>{
+   db.exec('ALTER TABLE verses RENAME TO legacy_verses; CREATE TABLE verses(translation_id TEXT NOT NULL,book_id TEXT NOT NULL,chapter INTEGER NOT NULL,verse INTEGER NOT NULL,text TEXT NOT NULL,PRIMARY KEY(translation_id,book_id,chapter,verse)); CREATE INDEX idx_verses_location ON verses(translation_id,book_id,chapter,verse);');
+   db.exec("INSERT INTO verses SELECT 'WEB',book_id,chapter,verse,text FROM legacy_verses; DROP TABLE legacy_verses;");
+  })();
+ }
+ db.exec('CREATE TABLE IF NOT EXISTS translations(id TEXT PRIMARY KEY,name TEXT NOT NULL,abbreviation TEXT NOT NULL,description TEXT NOT NULL,license TEXT NOT NULL,sort_order INTEGER NOT NULL UNIQUE)');
+ const saveTranslation=db.prepare('INSERT OR REPLACE INTO translations VALUES(?,?,?,?,?,?)');
+ TRANSLATIONS.forEach(item=>saveTranslation.run(item.id,item.name,item.abbreviation,item.description,item.license,item.sortOrder));
  // Content seeding is idempotent so an interrupted first launch repairs itself.
  const repairQuestion=db.prepare('INSERT OR IGNORE INTO questions VALUES(?,?,?,?,?,?,?,?,?,?,?)');
  repairQuestion.run('GEN-000001','GEN',1,1,1,'What did God create in the beginning?','The heavens and the earth','Only the sea','The sun and moon','Humankind',0);
@@ -57,20 +73,22 @@ export function ensureContent(path:string, webVerseFile?:string){
  const syncQuestions=db.transaction(()=>{db.prepare('DELETE FROM questions').run();QUESTIONS.forEach(question=>curatedQuestion.run(...question))});
  syncQuestions();
  db.prepare('INSERT OR REPLACE INTO metadata(key,value) VALUES(?,?)').run('question_bank_version','1.3-personal');
- if(webVerseFile&&fs.existsSync(webVerseFile)){
-  const count=(db.prepare('SELECT COUNT(*) count FROM verses').get() as {count:number}).count;
+ for(const source of bibleSources){
+  if(!TRANSLATIONS.some(item=>item.id===source.translationId)||!fs.existsSync(source.file))continue;
+  const count=(db.prepare('SELECT COUNT(*) count FROM verses WHERE translation_id=?').get(source.translationId) as {count:number}).count;
   if(count<30000){
-   const insert=db.prepare('INSERT OR REPLACE INTO verses(book_id,chapter,verse,text) VALUES(?,?,?,?)');
-   const importWeb=db.transaction(()=>{
-    for(const line of fs.readFileSync(webVerseFile,'utf8').split(/\r?\n/)){
+   const insert=db.prepare('INSERT OR REPLACE INTO verses(translation_id,book_id,chapter,verse,text) VALUES(?,?,?,?,?)');
+   const importBible=db.transaction(()=>{
+    db.prepare('DELETE FROM verses WHERE translation_id=?').run(source.translationId);
+    for(const line of fs.readFileSync(source.file,'utf8').split(/\r?\n/)){
      if(!line)continue;
      const match=/^(\S+) (\d+):(\d+) (.*)$/.exec(line);
-     if(!match)throw new Error(`Invalid WEB verse line: ${line.slice(0,80)}`);
-     insert.run(WEB_BOOK_IDS[match[1]]??match[1],Number(match[2]),Number(match[3]),match[4]);
+     if(!match)throw new Error(`Invalid ${source.translationId} verse line: ${line.slice(0,80)}`);
+     insert.run(source.translationId,WEB_BOOK_IDS[match[1]]??match[1],Number(match[2]),Number(match[3]),match[4]);
     }
-    db.prepare('INSERT OR REPLACE INTO metadata(key,value) VALUES(?,?)').run('bible_version','WEBP-2026');
+    db.prepare('INSERT OR REPLACE INTO metadata(key,value) VALUES(?,?)').run(`bible_version_${source.translationId}`,`${source.translationId}-2026`);
    });
-   importWeb();
+   importBible();
   }
  }
  return db;

@@ -8,7 +8,7 @@ Download the newest Windows installer from [GitHub Releases](https://github.com/
 
 ## Architecture
 
-- `content/content.sqlite` — replaceable, shipped content (WEB text, books, questions, animal definitions, independent bank version).
+- `content/content.sqlite` — replaceable, shipped content (BSB, WEB, and KJV text; books; questions; animal definitions; independent bank version).
 - Electron `userData/selah-user.sqlite` — private profiles and progress, outside the install directory and preserved across upgrades.
 - `electron/` — trusted main process, migrations, domain rules, and persistence.
 - `src/` — sandboxed React interface communicating through a narrow preload bridge.
@@ -35,4 +35,4 @@ The Windows NSIS configuration creates an installable desktop application. User 
 
 ## Content policy
 
-The World English Bible is public domain. Do not edit its verse text while presenting it as WEB. Content releases should replace only `content.sqlite`; question IDs are permanent and must never be reused.
+The bundled BSB and WEB texts are public domain. The KJV is public domain outside the United Kingdom, where Crown letters patent apply. Do not edit a translation's verse text while presenting it under that translation's name. See `content/LICENSES.md` for sources and terms. Content releases should replace only `content.sqlite`; question IDs are permanent and must never be reused.

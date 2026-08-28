@@ -1,6 +1,6 @@
 {
   "name": "bible-questions-app",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "A private, fully offline Bible learning desktop application",
   "author": "Bible Questions App Project",
   "main": "dist-electron/electron/main.js",
@@ -57,8 +57,12 @@
     ],
     "extraResources": [
       {
-        "from": "content/engwebp_vpl.txt",
-        "to": "content/engwebp_vpl.txt"
+        "from": "content",
+        "to": "content",
+        "filter": [
+          "*.txt",
+          "LICENSES.md"
+        ]
       }
     ],
     "win": {

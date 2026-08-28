@@ -6,4 +6,5 @@ export interface QuizState { sessionId:number; mode:QuizMode; bookId:string|null
 export interface Book { id:string; name:string; testament:'OT'|'NT'; order:number; chapters:number }
 export interface Verse { verse:number; text:string; highlightColor?:string; note?:string; bookmarked?:boolean; temporary?:boolean }
 export interface VerseSearchResult { bookId:string; bookName:string; chapter:number; verse:number; text:string }
+export interface BibleTranslation { id:string; name:string; abbreviation:string; description:string; license:string }
 export interface Bootstrap { profiles:Profile[]; activeProfile:Profile|null; books:Book[]; animals:{id:string;name:string;emoji:string;unlockLevel:number}[]; appVersion:string; bankVersion:string }

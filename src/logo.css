@@ -1,0 +1,35 @@
+.brandmark.cross {
+  position: relative;
+}
+
+.brandmark.cross::before,
+.brandmark.cross::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 1px;
+  background: white;
+  transform: translate(-50%, -50%);
+}
+
+.brandmark.cross::before {
+  width: 5px;
+  height: 27px;
+}
+
+.brandmark.cross::after {
+  width: 19px;
+  height: 5px;
+  top: 43%;
+}
+
+.brandmark.big.cross::before {
+  width: 8px;
+  height: 47px;
+}
+
+.brandmark.big.cross::after {
+  width: 32px;
+  height: 8px;
+}

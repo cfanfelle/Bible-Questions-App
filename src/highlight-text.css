@@ -1,0 +1,6 @@
+.verse-text {
+  padding: 2px 1px;
+  border-radius: 3px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}

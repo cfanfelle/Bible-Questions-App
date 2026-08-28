@@ -1,7 +1,7 @@
 import Database from './db.js';
 
-export function readChapter(content:Database,user:Database,profileId:number,bookId:string,chapter:number){
- const verses=content.prepare('SELECT verse,text FROM verses WHERE book_id=? AND chapter=? ORDER BY verse').all(bookId,chapter) as unknown as {verse:number;text:string}[];
+export function readChapter(content:Database,user:Database,profileId:number,translationId:string,bookId:string,chapter:number){
+ const verses=content.prepare('SELECT verse,text FROM verses WHERE translation_id=? AND book_id=? AND chapter=? ORDER BY verse').all(translationId,bookId,chapter) as unknown as {verse:number;text:string}[];
  const saved=user.prepare('SELECT verse,color FROM highlights WHERE profile_id=? AND book_id=? AND chapter=?').all(profileId,bookId,chapter) as unknown as {verse:number;color:string}[];
  const notes=user.prepare('SELECT verse,note FROM verse_notes WHERE profile_id=? AND book_id=? AND chapter=?').all(profileId,bookId,chapter) as unknown as {verse:number;note:string}[];
  const bookmarks=user.prepare('SELECT verse FROM bookmarks WHERE profile_id=? AND book_id=? AND chapter=?').all(profileId,bookId,chapter) as unknown as {verse:number}[];

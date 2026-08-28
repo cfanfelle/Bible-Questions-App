@@ -18,6 +18,8 @@ CREATE TABLE bookmarks(profile_id INTEGER NOT NULL,book_id TEXT NOT NULL,chapter
 
 export const contentSchema=`CREATE TABLE metadata(key TEXT PRIMARY KEY,value TEXT NOT NULL);
 CREATE TABLE books(id TEXT PRIMARY KEY,name TEXT NOT NULL,testament TEXT NOT NULL,book_order INTEGER NOT NULL UNIQUE,chapters INTEGER NOT NULL);
-CREATE TABLE verses(book_id TEXT NOT NULL,chapter INTEGER NOT NULL,verse INTEGER NOT NULL,text TEXT NOT NULL,PRIMARY KEY(book_id,chapter,verse));
+CREATE TABLE translations(id TEXT PRIMARY KEY,name TEXT NOT NULL,abbreviation TEXT NOT NULL,description TEXT NOT NULL,license TEXT NOT NULL,sort_order INTEGER NOT NULL UNIQUE);
+CREATE TABLE verses(translation_id TEXT NOT NULL,book_id TEXT NOT NULL,chapter INTEGER NOT NULL,verse INTEGER NOT NULL,text TEXT NOT NULL,PRIMARY KEY(translation_id,book_id,chapter,verse));
+CREATE INDEX idx_verses_location ON verses(translation_id,book_id,chapter,verse);
 CREATE TABLE questions(id TEXT PRIMARY KEY,book_id TEXT NOT NULL,chapter INTEGER NOT NULL,verse_start INTEGER NOT NULL,verse_end INTEGER NOT NULL,question_text TEXT NOT NULL,answer_a TEXT NOT NULL,answer_b TEXT NOT NULL,answer_c TEXT NOT NULL,answer_d TEXT NOT NULL,correct_index INTEGER NOT NULL CHECK(correct_index BETWEEN 0 AND 3));
 CREATE TABLE animals(id TEXT PRIMARY KEY,name TEXT NOT NULL,emoji TEXT NOT NULL,unlock_level INTEGER NOT NULL,sort_order INTEGER NOT NULL);`;
