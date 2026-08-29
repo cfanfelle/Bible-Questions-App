@@ -4,7 +4,7 @@ An offline-first Electron desktop application for Bible reading, quizzes, practi
 
 ## Download
 
-Download the newest Windows installer from [GitHub Releases](https://github.com/cfanfelle/Bible-Questions-App/releases/latest). Installed copies check for updates automatically and preserve all local profiles and progress.
+Download the newest Windows (`.exe`) or macOS (`.dmg`) installer from [GitHub Releases](https://github.com/cfanfelle/Bible-Questions-App/releases/latest). Installed copies check for updates automatically and preserve all local profiles and progress.
 
 ## Architecture
 

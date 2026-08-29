@@ -35,7 +35,21 @@ const QUESTIONS:[string,string,number,number,number,string,string,string,string,
  ['GEN-000018','GEN',8,4,4,"Where did Noah's ark come to rest after the waters receded?",'The mountains of Ararat','Mount Sinai','The mountains of Moab','Mount Carmel',0],
  ['GEN-000019','GEN',8,7,7,'What was the first bird Noah sent out to see how far the water had receded?','Dove','Eagle','Raven','Sparrow',2],
  ['GEN-000020','GEN',8,8,8,'What did Noah send out to see if the water had receded from the surface of the ground?','Raven','Dove','Eagle','Sparrow',1],
- ['GEN-000021','GEN',8,11,11,'What did the dove bring back to Noah the second time it returned?','A fig leaf','An olive leaf','A small branch','A cluster of grapes',1]
+ ['GEN-000021','GEN',8,11,11,'What did the dove bring back to Noah the second time it returned?','A fig leaf','An olive leaf','A small branch','A cluster of grapes',1],
+ ['GEN-000022','GEN',9,13,13,"What is the sign of God's covenant?",'A pillar of fire','A rainbow in the clouds','An olive branch','A star',1],
+ ['GEN-000023','GEN',9,29,29,'How old was Noah when he died?','900 years old','930 years old','950 years old','969 years old',2],
+ ['GEN-000024','GEN',9,22,25,'Why did Noah curse Canaan, the son of Ham?','Ham stole from Noah',"Ham saw his father's nakedness and told his brothers",'Canaan refused to obey Noah',"Ham destroyed Noah's vineyard",1],
+ ['GEN-000025','GEN',10,6,6,'Who were the sons of Ham?','Cush, Egypt, Put, and Canaan','Elam, Asshur, Arpachshad, and Lud','Gomer, Magog, Madai, and Javan','Shem, Cush, Put, and Canaan',0],
+ ['GEN-000026','GEN',11,1,1,'How many languages did the people of the world originally speak before the Tower of Babel?','One language','Two languages','Seven languages','Twelve languages',0],
+ ['GEN-000027','GEN',11,4,9,'Why was building the Tower of Babel wrong?','The people wanted to make a name for themselves and avoid being scattered over the earth','The people built the tower on land that belonged to Noah','The people were forbidden from building with bricks','The tower was built as a temple for Noah',0],
+ ['GEN-000028','GEN',11,9,9,'What does the name "Babel" mean in the context of Genesis 11?','Confusion','Great city','Tower of heaven','Scattering',0],
+ ['GEN-000029','GEN',11,10,26,"From which of Noah's three sons was Abram descended?",'Ham','Japheth','Shem','Canaan',2],
+ ['GEN-000030','GEN',11,27,31,'How was Lot related to Abram?',"Lot was Abram's brother","Lot was Abram's nephew","Lot was Abram's son","Lot was Abram's cousin",1],
+ ['GEN-000031','GEN',12,11,13,'Why did Abram tell Sarai to say that she was his sister?','He wanted Pharaoh to give her land','He was afraid the Egyptians would kill him because of her beauty','He wanted to hide that they had come from Canaan','He was afraid Sarai would be sent back home',1],
+ ['GEN-000032','GEN',13,5,9,'Why did Abram and Lot separate from each other?','They disagreed over where to build an altar','The land could not support all their possessions, and their herdsmen were quarreling','Lot wanted to return to Egypt','Abram told Lot to leave because he had disobeyed God',1],
+ ['GEN-000033','GEN',16,15,15,"What was the name of Abram's first son, whom Hagar gave birth to?",'Isaac','Ishmael','Esau','Jacob',1],
+ ['GEN-000034','GEN',17,9,11,'Why did God command Abraham and the males in his household to be circumcised?','As a sign of the covenant between God and Abraham','To show that Abraham was the leader of his household','As a punishment for leaving his homeland','To prepare them for entering Egypt',0],
+ ['GEN-000035','GEN',17,24,25,'How old were Abraham and his son Ishmael when they were circumcised?','Abraham was 75 and Ishmael was 10','Abraham was 90 and Ishmael was 12','Abraham was 99 and Ishmael was 13','Abraham was 100 and Ishmael was 14',2]
 ];
 
 export function ensureContent(path:string, bibleSources:BibleSource[]=[]){
@@ -72,7 +86,7 @@ export function ensureContent(path:string, bibleSources:BibleSource[]=[]){
  const curatedQuestion=db.prepare('INSERT OR REPLACE INTO questions VALUES(?,?,?,?,?,?,?,?,?,?,?)');
  const syncQuestions=db.transaction(()=>{db.prepare('DELETE FROM questions').run();QUESTIONS.forEach(question=>curatedQuestion.run(...question))});
  syncQuestions();
- db.prepare('INSERT OR REPLACE INTO metadata(key,value) VALUES(?,?)').run('question_bank_version','1.3-personal');
+ db.prepare('INSERT OR REPLACE INTO metadata(key,value) VALUES(?,?)').run('question_bank_version','1.4-personal');
  for(const source of bibleSources){
   if(!TRANSLATIONS.some(item=>item.id===source.translationId)||!fs.existsSync(source.file))continue;
   const count=(db.prepare('SELECT COUNT(*) count FROM verses WHERE translation_id=?').get(source.translationId) as {count:number}).count;

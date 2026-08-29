@@ -1,4 +1,4 @@
-name: Build Windows release
+name: Build desktop release
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  release:
+  windows:
     runs-on: windows-latest
     steps:
       - name: Check out source
@@ -23,19 +23,60 @@ jobs:
         run: npm ci
       - name: Test
         run: npm test
-      - name: Build release files
+      - name: Build Windows release files
         run: |
           npm run build
-          npx electron-builder --publish never
-      - name: Publish release files
-        shell: pwsh
+          npx electron-builder --win --publish never
+      - name: Upload Windows assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: |
+            dist/*.exe
+            dist/*.exe.blockmap
+            dist/latest.yml
+          if-no-files-found: error
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Test
+        run: npm test
+      - name: Build macOS release files
         run: |
-          Get-ChildItem dist -File | Where-Object { $_.Extension -in '.exe','.blockmap' } | ForEach-Object {
-            $normalized = $_.Name.Replace(' ', '-')
-            if ($normalized -ne $_.Name) { Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $_.DirectoryName $normalized) }
-          }
-          $assets = Get-ChildItem dist -File | Where-Object { $_.Name -eq 'latest.yml' -or (($_.Extension -in '.exe','.blockmap') -and $_.Name -notmatch ' ') } | ForEach-Object { $_.FullName }
-          if ($assets.Count -lt 3) { throw "Expected installer, block map, and latest.yml." }
-          gh release create $env:GITHUB_REF_NAME @assets --title $env:GITHUB_REF_NAME --generate-notes
+          npm run build
+          npx electron-builder --mac --publish never
+      - name: Upload macOS assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-release
+          path: |
+            dist/*.dmg
+            dist/*.dmg.blockmap
+            dist/*.zip
+            dist/*.zip.blockmap
+            dist/latest-mac.yml
+          if-no-files-found: error
+
+  release:
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download release assets
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+      - name: Publish GitHub release
+        run: gh release create "$GITHUB_REF_NAME" release-assets/* --title "$GITHUB_REF_NAME" --generate-notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

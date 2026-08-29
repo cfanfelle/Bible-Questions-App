@@ -2,7 +2,7 @@ import electron from 'electron';
 const { app, BrowserWindow, ipcMain } = electron;
 import path from 'node:path'; import fs from 'node:fs'; import Database from './db.js';
 import { fileURLToPath } from 'node:url'; import { ensureContent } from './content.js'; import { userMigrations } from './migrations.js'; import { levelFromXp, shuffled, streak, medalFor } from './domain.js';
-import { readChapter } from './bible.js';
+import { readChapter, searchVerses } from './bible.js';
 import electronUpdater from 'electron-updater';
 const { autoUpdater } = electronUpdater;
 const here=path.dirname(fileURLToPath(import.meta.url)); let user:Database, content:Database; let activeProfileId:number|null=null; let lastInteraction=Date.now(), accrued=0;
@@ -22,10 +22,9 @@ function configureAutoUpdates(win:InstanceType<typeof BrowserWindow>){
 function registerBibleSearch(){
  ipcMain.handle('bible:translations',()=>content.prepare('SELECT id,name,abbreviation,description,license FROM translations ORDER BY sort_order').all());
  ipcMain.handle('bible:search',(_,value)=>{
-  const query=String(value?.query??value??'').trim();
+  const query=String(value?.query??value??'');
   const translationId=String(value?.translationId??'BSB');
-  if(query.length<2)return [];
-  return content.prepare('SELECT v.book_id bookId,b.name bookName,v.chapter,v.verse,v.text FROM verses v JOIN books b ON b.id=v.book_id WHERE v.translation_id=? AND v.text LIKE ? ORDER BY b.book_order,v.chapter,v.verse LIMIT 100').all(translationId,`%${query}%`);
+  return searchVerses(content,translationId,query);
  });
 }
 function registerAnnotations(){
