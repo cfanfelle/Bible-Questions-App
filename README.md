@@ -1,4 +1,4 @@
-# Bible Questions App — V1
+# Bible Trivia — V1
 
 An offline-first Electron desktop application for Bible reading, quizzes, practice, daily questions, local profiles, XP, streaks, medals, and highlights.
 

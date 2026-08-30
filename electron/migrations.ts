@@ -14,6 +14,17 @@ CREATE INDEX idx_sessions_profile_status ON sessions(profile_id,status);`,
 `CREATE TABLE verse_notes(profile_id INTEGER NOT NULL,book_id TEXT NOT NULL,chapter INTEGER NOT NULL,verse INTEGER NOT NULL,note TEXT NOT NULL,updated_at TEXT NOT NULL,PRIMARY KEY(profile_id,book_id,chapter,verse));
 CREATE TABLE bookmarks(profile_id INTEGER NOT NULL,book_id TEXT NOT NULL,chapter INTEGER NOT NULL,verse INTEGER NOT NULL,created_at TEXT NOT NULL,PRIMARY KEY(profile_id,book_id,chapter,verse));`
 ,`ALTER TABLE book_stats ADD COLUMN last_question_count INTEGER;`
+,`ALTER TABLE profiles ADD COLUMN online_user_id TEXT;
+CREATE UNIQUE INDEX idx_profiles_online_user_id ON profiles(online_user_id) WHERE online_user_id IS NOT NULL;`
+,`CREATE TABLE xp_events(
+id TEXT PRIMARY KEY,
+profile_id INTEGER NOT NULL,
+amount REAL NOT NULL CHECK(amount >= 0),
+source TEXT NOT NULL,
+created_at TEXT NOT NULL,
+synced_at TEXT,
+FOREIGN KEY(profile_id) REFERENCES profiles(id) ON DELETE CASCADE);
+CREATE INDEX idx_xp_events_profile_sync ON xp_events(profile_id,synced_at);`
 ];
 
 export const contentSchema=`CREATE TABLE metadata(key TEXT PRIMARY KEY,value TEXT NOT NULL);

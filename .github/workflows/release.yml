@@ -54,7 +54,7 @@ jobs:
       - name: Build macOS release files
         run: |
           npm run build
-          npx electron-builder --mac --publish never
+          npx electron-builder --mac --x64 --arm64 --publish never
       - name: Upload macOS assets
         uses: actions/upload-artifact@v4
         with:

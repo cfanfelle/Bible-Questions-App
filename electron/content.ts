@@ -14,6 +14,19 @@ export const TRANSLATIONS=[
 ] as const;
 export interface BibleSource {translationId:string;file:string}
 
+export const AVATARS:[string,string,string,number][]=[
+ ['lamb','Lamb','🐑',1],
+ ['dove','Dove','🕊️',1],
+ ['fish','Fish','🐟',1],
+ ['donkey','Donkey','🫏',50],
+ ['goat','Goat','🐐',208],
+ ['camel','Camel','🐫',367],
+ ['eagle','Eagle','🦅',525],
+ ['deer','Deer','🦌',683],
+ ['ox','Ox','🐂',842],
+ ['lion','Lion','🦁',1000]
+];
+
 const QUESTIONS:[string,string,number,number,number,string,string,string,string,string,number][]=[
  ['GEN-000001','GEN',1,9,13,'What did God create on the third day?','The sun and the moon','Land and seas','Birds and fish','Man and animals',1],
  ['GEN-000002','GEN',1,1,5,'What did God create on the first day?','The sky','Light','Land and seas','The sun and moon',1],
@@ -49,7 +62,18 @@ const QUESTIONS:[string,string,number,number,number,string,string,string,string,
  ['GEN-000032','GEN',13,5,9,'Why did Abram and Lot separate from each other?','They disagreed over where to build an altar','The land could not support all their possessions, and their herdsmen were quarreling','Lot wanted to return to Egypt','Abram told Lot to leave because he had disobeyed God',1],
  ['GEN-000033','GEN',16,15,15,"What was the name of Abram's first son, whom Hagar gave birth to?",'Isaac','Ishmael','Esau','Jacob',1],
  ['GEN-000034','GEN',17,9,11,'Why did God command Abraham and the males in his household to be circumcised?','As a sign of the covenant between God and Abraham','To show that Abraham was the leader of his household','As a punishment for leaving his homeland','To prepare them for entering Egypt',0],
- ['GEN-000035','GEN',17,24,25,'How old were Abraham and his son Ishmael when they were circumcised?','Abraham was 75 and Ishmael was 10','Abraham was 90 and Ishmael was 12','Abraham was 99 and Ishmael was 13','Abraham was 100 and Ishmael was 14',2]
+ ['GEN-000035','GEN',17,24,25,'How old were Abraham and his son Ishmael when they were circumcised?','Abraham was 75 and Ishmael was 10','Abraham was 90 and Ishmael was 12','Abraham was 99 and Ishmael was 13','Abraham was 100 and Ishmael was 14',2],
+ ['GEN-000037','GEN',19,20,23,'What city did Lot flee to when escaping the destruction of Sodom?','Bethel','Zoar','Hebron','Gerar',1],
+ ['GEN-000038','GEN',19,17,26,"Why did Lot's wife become a pillar of salt?",'She refused to leave Sodom','She looked back toward Sodom after being commanded not to look back','She tried to return to her home','She disobeyed Lot and fled toward Zoar',1],
+ ['GEN-000039','GEN',21,20,20,'What did Ishmael become skilled at as he grew up?','Farming','Hunting with a bow','Building cities','Tending vineyards',1],
+ ['GEN-000040','GEN',21,1,3,"What was the name of Abraham and Sarah's son?",'Ishmael','Isaac','Jacob','Esau',1],
+ ['GEN-000041','GEN',22,1,2,"How did God test Abraham's faith?",'He told Abraham to return to his homeland','He commanded Abraham to offer his son Isaac as a sacrifice','He told Abraham to give away all his possessions','He commanded Abraham to leave Sarah behind',1],
+ ['GEN-000042','GEN',24,2,4,'What mission did Abraham give his chief servant?',"Find a wife for Isaac from Abraham's relatives","Take Isaac back to Abraham's homeland","Find new land for Abraham's household",'Bring Ishmael back to live with Abraham',0],
+ ['PRO-000001','PRO',3,13,14,'According to Proverbs 3:13–14, what is more valuable than silver and gold?','Strength','Wisdom','Long life','Wealth',1],
+ ['ISA-000001','ISA',38,2,5,'Which king prayed to God for his life to be extended and was given fifteen more years?','King David','King Solomon','King Asa','King Hezekiah',3],
+ ['MAT-000001','MAT',22,36,38,'What is the greatest and first commandment?','Love the Lord your God with all your heart, soul, and mind','Do not be afraid of evil','Do not commit adultery','Do not murder',0],
+ ['JOS-000001','JOS',1,6,6,'What did God command Joshua as he prepared to lead Israel after Moses?','Be strong and courageous','Be wise and merciful','Be patient and silent','Be wealthy and powerful',0],
+ ['NUM-000001','NUM',12,7,8,'With whom did God say He spoke face-to-face, clearly and not in riddles?','Joshua','Jeremiah','Isaiah','Moses',3]
 ];
 
 export function ensureContent(path:string, bibleSources:BibleSource[]=[]){
@@ -58,7 +82,7 @@ export function ensureContent(path:string, bibleSources:BibleSource[]=[]){
   db.exec(contentSchema);
   const book=db.prepare('INSERT INTO books VALUES(?,?,?,?,?)'); BOOKS.forEach((b,i)=>book.run(b[0],b[1],b[2],i+1,b[3]));
   db.prepare('INSERT INTO metadata VALUES (?,?)').run('question_bank_version','1.0-sample');
-  const animal=db.prepare('INSERT INTO animals VALUES(?,?,?,?,?)'); [['lamb','Lamb','🐑',1],['dove','Dove','🕊️',1],['fish','Fish','🐟',1],['donkey','Donkey','🫏',1],['goat','Goat','🐐',1],['camel','Camel','🐫',1],['eagle','Eagle','🦅',25],['deer','Deer','🦌',50],['ox','Ox','🐂',100],['lion','Lion','🦁',1000]].forEach((a,i)=>animal.run(...a,i));
+  const animal=db.prepare('INSERT INTO animals VALUES(?,?,?,?,?)'); AVATARS.forEach((a,i)=>animal.run(...a,i));
   const verse=db.prepare('INSERT INTO verses VALUES(?,?,?,?,?)');
   [[1,'In the beginning, God created the heavens and the earth.'],[2,'The earth was formless and empty. Darkness was on the surface of the deep and God’s Spirit was hovering over the surface of the waters.'],[3,'God said, “Let there be light,” and there was light.'],[4,'God saw the light, and saw that it was good. God divided the light from the darkness.'],[5,'God called the light “day”, and the darkness he called “night”. There was evening and there was morning, the first day.']].forEach(v=>verse.run('BSB','GEN',1,...v));
   [[16,'For God so loved the world, that he gave his only born Son, that whoever believes in him should not perish, but have eternal life.'],[17,'For God didn’t send his Son into the world to judge the world, but that the world should be saved through him.']].forEach(v=>verse.run('BSB','JHN',3,...v));
@@ -77,6 +101,8 @@ export function ensureContent(path:string, bibleSources:BibleSource[]=[]){
  db.exec('CREATE TABLE IF NOT EXISTS translations(id TEXT PRIMARY KEY,name TEXT NOT NULL,abbreviation TEXT NOT NULL,description TEXT NOT NULL,license TEXT NOT NULL,sort_order INTEGER NOT NULL UNIQUE)');
  const saveTranslation=db.prepare('INSERT OR REPLACE INTO translations VALUES(?,?,?,?,?,?)');
  TRANSLATIONS.forEach(item=>saveTranslation.run(item.id,item.name,item.abbreviation,item.description,item.license,item.sortOrder));
+ const saveAvatar=db.prepare('INSERT OR REPLACE INTO animals VALUES(?,?,?,?,?)');
+ AVATARS.forEach((avatar,index)=>saveAvatar.run(...avatar,index));
  // Content seeding is idempotent so an interrupted first launch repairs itself.
  const repairQuestion=db.prepare('INSERT OR IGNORE INTO questions VALUES(?,?,?,?,?,?,?,?,?,?,?)');
  repairQuestion.run('GEN-000001','GEN',1,1,1,'What did God create in the beginning?','The heavens and the earth','Only the sea','The sun and moon','Humankind',0);
@@ -86,7 +112,7 @@ export function ensureContent(path:string, bibleSources:BibleSource[]=[]){
  const curatedQuestion=db.prepare('INSERT OR REPLACE INTO questions VALUES(?,?,?,?,?,?,?,?,?,?,?)');
  const syncQuestions=db.transaction(()=>{db.prepare('DELETE FROM questions').run();QUESTIONS.forEach(question=>curatedQuestion.run(...question))});
  syncQuestions();
- db.prepare('INSERT OR REPLACE INTO metadata(key,value) VALUES(?,?)').run('question_bank_version','1.4-personal');
+ db.prepare('INSERT OR REPLACE INTO metadata(key,value) VALUES(?,?)').run('question_bank_version','1.5-personal');
  for(const source of bibleSources){
   if(!TRANSLATIONS.some(item=>item.id===source.translationId)||!fs.existsSync(source.file))continue;
   const count=(db.prepare('SELECT COUNT(*) count FROM verses WHERE translation_id=?').get(source.translationId) as {count:number}).count;
