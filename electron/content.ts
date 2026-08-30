@@ -69,6 +69,11 @@ const QUESTIONS:[string,string,number,number,number,string,string,string,string,
  ['GEN-000040','GEN',21,1,3,"What was the name of Abraham and Sarah's son?",'Ishmael','Isaac','Jacob','Esau',1],
  ['GEN-000041','GEN',22,1,2,"How did God test Abraham's faith?",'He told Abraham to return to his homeland','He commanded Abraham to offer his son Isaac as a sacrifice','He told Abraham to give away all his possessions','He commanded Abraham to leave Sarah behind',1],
  ['GEN-000042','GEN',24,2,4,'What mission did Abraham give his chief servant?',"Find a wife for Isaac from Abraham's relatives","Take Isaac back to Abraham's homeland","Find new land for Abraham's household",'Bring Ishmael back to live with Abraham',0],
+ ['GEN-000043','GEN',25,9,10,'Where were Abraham and Sarah buried?','The cave of Machpelah','The fields of Beersheba','The mountains of Bethel','The land of Moriah',0],
+ ['GEN-000044','GEN',24,67,67,"What was Isaac's wife's name?",'Rachel','Leah','Rebekah','Hagar',2],
+ ['GEN-000045','GEN',25,24,26,"What were the names of Isaac and Rebekah's two sons?",'Jacob and Joseph','Esau and Jacob','Ishmael and Isaac','Cain and Abel',1],
+ ['GEN-000046','GEN',25,29,34,'How did Jacob get Esau to sell him his birthright?','He offered Esau land and livestock','He gave Esau bread and lentil stew when Esau was hungry','He promised Esau a share of his inheritance','He defeated Esau in a contest',1],
+ ['GEN-000047','GEN',26,1,1,'Abimelek was king of what people?','The Egyptians','The Philistines','The Moabites','The Edomites',1],
  ['PRO-000001','PRO',3,13,14,'According to Proverbs 3:13–14, what is more valuable than silver and gold?','Strength','Wisdom','Long life','Wealth',1],
  ['ISA-000001','ISA',38,2,5,'Which king prayed to God for his life to be extended and was given fifteen more years?','King David','King Solomon','King Asa','King Hezekiah',3],
  ['MAT-000001','MAT',22,36,38,'What is the greatest and first commandment?','Love the Lord your God with all your heart, soul, and mind','Do not be afraid of evil','Do not commit adultery','Do not murder',0],
@@ -112,7 +117,7 @@ export function ensureContent(path:string, bibleSources:BibleSource[]=[]){
  const curatedQuestion=db.prepare('INSERT OR REPLACE INTO questions VALUES(?,?,?,?,?,?,?,?,?,?,?)');
  const syncQuestions=db.transaction(()=>{db.prepare('DELETE FROM questions').run();QUESTIONS.forEach(question=>curatedQuestion.run(...question))});
  syncQuestions();
- db.prepare('INSERT OR REPLACE INTO metadata(key,value) VALUES(?,?)').run('question_bank_version','1.5-personal');
+ db.prepare('INSERT OR REPLACE INTO metadata(key,value) VALUES(?,?)').run('question_bank_version','1.6-personal');
  for(const source of bibleSources){
   if(!TRANSLATIONS.some(item=>item.id===source.translationId)||!fs.existsSync(source.file))continue;
   const count=(db.prepare('SELECT COUNT(*) count FROM verses WHERE translation_id=?').get(source.translationId) as {count:number}).count;

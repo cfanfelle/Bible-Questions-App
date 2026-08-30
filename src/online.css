@@ -893,6 +893,43 @@
   border: 0;
   background: none;
 }
+.friend-list > div > button.primary {
+  background: var(--green);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 9px;
+  box-shadow: 0 2px 6px #253f3726;
+}
+.friend-list > div > button.primary:hover {
+  background: #254b3d;
+}
+.friend-list > div > button.danger {
+  background: #a8473f;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 9px;
+  box-shadow: 0 2px 6px #54231f26;
+}
+.friend-list > div > button.danger:hover {
+  background: #87372f;
+}
+.friend-list > div > button.secondary {
+  background: #e4e6e4;
+  color: #4f5953;
+  padding: 10px 16px;
+  border-radius: 9px;
+}
+.friend-list > div > button.secondary:hover {
+  background: #d5d9d6;
+}
+.friend-list > div > button:nth-child(4) {
+  background: #a8473f;
+  color: #fff;
+  box-shadow: 0 2px 6px #54231f26;
+}
+.friend-list > div > button:nth-child(4):hover {
+  background: #87372f;
+}
 .request-list > div {
   grid-template-columns: 45px 1fr auto auto;
 }

@@ -5,6 +5,19 @@ export type AgeGroup = "under13" | "13to17" | "18plus";
 export interface OnlineAccount { onlineUserId:string;email:string;username:string;ageGroup:AgeGroup;friendCode:string;verified:boolean;admin:boolean }
 export interface FriendConnection { id:string;userId:string;username:string;status:"pending"|"accepted";direction:"incoming"|"outgoing"|"friend" }
 
+export function subscribeToOnlineUsers(userId:string,onChange:(userIds:Set<string>)=>void){
+  const channel=supabase.channel("online-friends",{config:{presence:{key:userId}}});
+  channel
+    .on("presence",{event:"sync"},()=>onChange(new Set(Object.keys(channel.presenceState()))))
+    .subscribe(status=>{
+      if(status==="SUBSCRIBED")void channel.track({userId,onlineAt:new Date().toISOString()});
+    });
+  return ()=>{
+    void channel.untrack();
+    void supabase.removeChannel(channel);
+  };
+}
+
 export function onlineErrorMessage(error: unknown, fallback: string) {
   if (error instanceof Error) return error.message;
   if (error && typeof error === "object" && "message" in error && typeof error.message === "string") return error.message;

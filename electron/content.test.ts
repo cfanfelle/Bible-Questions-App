@@ -8,12 +8,16 @@ import Database from './db.js';
 describe('content database seeding', () => {
   it('creates the curated question bank with all Genesis questions', () => {
     const db = ensureContent(':memory:');
-    expect((db.prepare('SELECT COUNT(*) count FROM questions').get() as {count:number}).count).toBe(46);
-    expect((db.prepare("SELECT COUNT(*) count FROM questions WHERE book_id='GEN'").get() as {count:number}).count).toBe(41);
+    expect((db.prepare('SELECT COUNT(*) count FROM questions').get() as {count:number}).count).toBe(51);
+    expect((db.prepare("SELECT COUNT(*) count FROM questions WHERE book_id='GEN'").get() as {count:number}).count).toBe(46);
     expect((db.prepare("SELECT COUNT(*) count FROM questions WHERE book_id<>'GEN'").get() as {count:number}).count).toBe(5);
     expect((db.prepare("SELECT answer_b,correct_index FROM questions WHERE id='GEN-000001'").get() as {answer_b:string;correct_index:number})).toEqual({answer_b:'Land and seas',correct_index:1});
     expect((db.prepare("SELECT answer_b,correct_index FROM questions WHERE id='GEN-000021'").get() as {answer_b:string;correct_index:number})).toEqual({answer_b:'An olive leaf',correct_index:1});
     expect((db.prepare("SELECT answer_c,correct_index FROM questions WHERE id='GEN-000035'").get() as {answer_c:string;correct_index:number})).toEqual({answer_c:'Abraham was 99 and Ishmael was 13',correct_index:2});
+    expect(db.prepare("SELECT id,correct_index correctIndex FROM questions WHERE id BETWEEN 'GEN-000043' AND 'GEN-000047' ORDER BY id").all()).toEqual([
+      {id:'GEN-000043',correctIndex:0}, {id:'GEN-000044',correctIndex:2}, {id:'GEN-000045',correctIndex:1},
+      {id:'GEN-000046',correctIndex:1}, {id:'GEN-000047',correctIndex:1}
+    ]);
     expect(db.prepare("SELECT book_id bookId,correct_index correctIndex FROM questions WHERE id IN ('GEN-000037','PRO-000001','ISA-000001','MAT-000001','JOS-000001','NUM-000001') ORDER BY id").all()).toEqual([
       {bookId:'GEN',correctIndex:1}, {bookId:'ISA',correctIndex:3}, {bookId:'JOS',correctIndex:0},
       {bookId:'MAT',correctIndex:0}, {bookId:'NUM',correctIndex:3}, {bookId:'PRO',correctIndex:1}

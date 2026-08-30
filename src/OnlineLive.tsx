@@ -3,7 +3,7 @@ import { Check, Copy, LockKeyhole, ShieldCheck, UserPlus, Users, Wifi } from "lu
 import type { Book, Profile } from "../shared/types";
 import {
   hasUploadedProfile, isUsernameAvailable, listFriendConnections, onlineErrorMessage,
-  removeFriendConnection, respondFriendRequest, restoreOnlineAccount, sendFriendRequest,
+  removeFriendConnection, respondFriendRequest, restoreOnlineAccount, sendFriendRequest, subscribeToOnlineUsers,
   sendPasswordRecovery, signInOnline, signOutOnline, signUpOnline, syncReaderData, syncXpLedger,
   uploadInitialProfile, type AgeGroup, type FriendConnection, type OnlineAccount,
 } from "./onlineService";
@@ -30,7 +30,7 @@ export default function OnlineLive({profile}: {profile:Profile;books:Book[]}) {
     </nav>
     {section==="overview"&&<Overview profile={profile} account={account} sync={sync} go={setSection}/>} 
     {section==="account"&&<Account profile={profile} account={account} setAccount={setAccount} sync={sync} setSync={setSync}/>} 
-    {section==="friends"&&account&&<Friends/>}
+    {section==="friends"&&account&&<Friends userId={account.onlineUserId}/>}
   </section>;
 }
 
@@ -51,11 +51,27 @@ function Account({profile,account,setAccount,sync,setSync}:{profile:Profile;acco
   return <section className="registration card auth-compact"><span className="eyebrow">{mode==="register"?"CREATE ONLINE ACCOUNT":mode==="recover"?"ACCOUNT RECOVERY":"WELCOME BACK"}</span><h2>{mode==="register"?"Connect this local profile":mode==="recover"?"Reset your password":"Sign in to your online account"}</h2>{mode==="register"&&<><label>Age category<select value={age} onChange={e=>setAge(e.target.value as AgeGroup)}><option value="18plus">18 or older</option><option value="13to17">13–17</option><option value="under13">Under 13</option></select></label><label>Unique public username<div className="username-check"><input value={username} onChange={e=>{setUsername(e.target.value);setAvailable(null)}}/><button className="secondary" onClick={()=>void isUsernameAvailable(username).then(setAvailable).catch(e=>fail(e,"Check failed."))}>Check</button></div>{available!==null&&<small className={available?"available":"unavailable"}>{available?"Username is available":"Try another username"}</small>}</label></>}<label>Email<input type="email" value={email} onChange={e=>setEmail(e.target.value)}/></label>{mode!=="recover"&&<label>Password<input type="password" value={password} onChange={e=>setPassword(e.target.value)}/></label>}{message&&<p className="form-error">{message}</p>}{mode==="signin"&&<button className="primary" onClick={()=>void signIn()}>Sign in</button>}{mode==="register"&&<button className="primary" onClick={()=>void register()}>Create account</button>}{mode==="recover"&&<button className="primary" onClick={()=>void sendPasswordRecovery(email).then(()=>setMessage("Recovery email sent.")).catch(e=>fail(e,"Recovery failed."))}>Send recovery email</button>}<button className="link-button" onClick={()=>setMode(mode==="signin"?"register":"signin")}>{mode==="signin"?"Create a new account":"Back to sign in"}</button>{mode==="signin"&&<button className="link-button" onClick={()=>setMode("recover")}>Forgot password?</button>}</section>;
 }
 
-function Friends(){
+function Friends({userId}:{userId:string}){
   const [items,setItems]=useState<FriendConnection[]>([]),[code,setCode]=useState(""),[message,setMessage]=useState(""),[loading,setLoading]=useState(true);
+  const [onlineUserIds,setOnlineUserIds]=useState<Set<string>>(()=>new Set());
   const load=()=>listFriendConnections().then(setItems).catch(e=>setMessage(onlineErrorMessage(e,"Could not load friends."))).finally(()=>setLoading(false));
   useEffect(()=>{void load()},[]);
+  useEffect(()=>subscribeToOnlineUsers(userId,setOnlineUserIds),[userId]);
   const act=async(action:()=>Promise<void>,success:string)=>{setMessage("");try{await action();setMessage(success);await load()}catch(e){setMessage(onlineErrorMessage(e,"Friend action failed."))}};
   const friends=items.filter(i=>i.direction==="friend"),incoming=items.filter(i=>i.direction==="incoming"),outgoing=items.filter(i=>i.direction==="outgoing");
-  return <><section className="friend-add card"><div><span className="eyebrow">PRIVATE FRIEND CODES</span><h2>Add someone you know</h2><p>Enter the code shown on your friend’s Account page. They must accept before you connect.</p></div><div className="friend-search"><UserPlus/><input value={code} onChange={e=>setCode(e.target.value.toUpperCase())} placeholder="Friend code"/><button className="primary" disabled={!code.trim()} onClick={()=>void act(()=>sendFriendRequest(code),"Friend request sent.").then(()=>setCode(""))}>Send request</button></div>{message&&<p>{message}</p>}</section><section className="friends-directory card"><h2>Connections</h2>{loading?<p>Loading…</p>:items.length===0?<div className="online-empty"><Users/><h3>No connections yet</h3><p>Share your private friend code with someone you know.</p></div>:<div className="friend-list">{incoming.map(i=><div key={i.id}><span>👤</span><div><b>{i.username}</b><small>Incoming request</small></div><button className="primary" onClick={()=>void act(()=>respondFriendRequest(i.id,true),"Friend request accepted.")}><Check size={15}/>Accept</button><button className="secondary" onClick={()=>void act(()=>respondFriendRequest(i.id,false),"Request declined.")}>Decline</button></div>)}{outgoing.map(i=><div key={i.id}><span>👤</span><div><b>{i.username}</b><small>Request pending</small></div><button className="secondary" onClick={()=>void act(()=>removeFriendConnection(i.id),"Request cancelled.")}>Cancel</button></div>)}{friends.map(i=><div key={i.id}><span>👤</span><div><b>{i.username}</b><small>Friend</small></div><button className="secondary" onClick={()=>void act(()=>removeFriendConnection(i.id),"Friend removed.")}>Remove</button></div>)}</div>}</section></>;
+  return <>
+    <section className="friend-add card">
+      <div><span className="eyebrow">PRIVATE FRIEND CODES</span><h2>Add someone you know</h2><p>Enter the code shown on your friend’s Account page. They must accept before you connect.</p></div>
+      <div className="friend-search"><UserPlus/><input value={code} onChange={e=>setCode(e.target.value.toUpperCase())} placeholder="Friend code"/><button className="primary" disabled={!code.trim()} onClick={()=>void act(()=>sendFriendRequest(code),"Friend request sent.").then(()=>setCode(""))}>Send request</button></div>
+      {message&&<p>{message}</p>}
+    </section>
+    <section className="friends-directory card">
+      <h2>Connections</h2>
+      {loading?<p>Loading…</p>:items.length===0?<div className="online-empty"><Users/><h3>No connections yet</h3><p>Share your private friend code with someone you know.</p></div>:<div className="friend-list">
+        {incoming.map(i=><div key={i.id}><span>👤</span><div><b>{i.username}</b><small>Incoming request</small></div><button className="primary" onClick={()=>void act(()=>respondFriendRequest(i.id,true),"Friend request accepted.")}><Check size={15}/>Accept</button><button className="secondary" onClick={()=>void act(()=>respondFriendRequest(i.id,false),"Request declined.")}>Decline</button></div>)}
+        {outgoing.map(i=><div key={i.id}><span>👤</span><div><b>{i.username}</b><small>Request pending</small></div><button className="secondary" onClick={()=>void act(()=>removeFriendConnection(i.id),"Request cancelled.")}>Cancel</button></div>)}
+        {friends.map(i=><div key={i.id}><span>👤<i className={onlineUserIds.has(i.userId)?"online":""} title={onlineUserIds.has(i.userId)?"Online":"Offline"}/></span><div><b>{i.username}</b><small>{onlineUserIds.has(i.userId)?"Online":"Friend"}</small></div><button className="danger" onClick={()=>void act(()=>removeFriendConnection(i.id),"Friend removed.")}>Remove</button></div>)}
+      </div>}
+    </section>
+  </>;
 }
