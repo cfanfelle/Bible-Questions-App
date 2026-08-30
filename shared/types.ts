@@ -7,4 +7,5 @@ export interface Book { id:string; name:string; testament:'OT'|'NT'; order:numbe
 export interface Verse { verse:number; text:string; highlightColor?:string; note?:string; bookmarked?:boolean; temporary?:boolean }
 export interface VerseSearchResult { bookId:string; bookName:string; chapter:number; verse:number; text:string }
 export interface BibleTranslation { id:string; name:string; abbreviation:string; description:string; license:string }
+export interface ChapterBookmark { color:'red'|'gold'|'green'|'blue'|'purple';bookId:string;bookName:string;chapter:number }
 export interface Bootstrap { profiles:Profile[]; activeProfile:Profile|null; books:Book[]; animals:{id:string;name:string;emoji:string;unlockLevel:number}[]; appVersion:string; bankVersion:string }

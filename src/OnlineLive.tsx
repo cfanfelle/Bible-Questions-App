@@ -4,7 +4,7 @@ import type { Book, Profile } from "../shared/types";
 import {
   hasUploadedProfile, isUsernameAvailable, listFriendConnections, onlineErrorMessage,
   removeFriendConnection, respondFriendRequest, restoreOnlineAccount, sendFriendRequest,
-  sendPasswordRecovery, signInOnline, signOutOnline, signUpOnline, syncXpLedger,
+  sendPasswordRecovery, signInOnline, signOutOnline, signUpOnline, syncReaderData, syncXpLedger,
   uploadInitialProfile, type AgeGroup, type FriendConnection, type OnlineAccount,
 } from "./onlineService";
 import "./online.css";
@@ -43,7 +43,7 @@ function Account({profile,account,setAccount,sync,setSync}:{profile:Profile;acco
   const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[username,setUsername]=useState(profile.name.replace(/\W/g,"")||"BibleReader"),[age,setAge]=useState<AgeGroup>("18plus"),[message,setMessage]=useState(""),[available,setAvailable]=useState<boolean|null>(null);
   const fail=(e:unknown,fallback:string)=>setMessage(onlineErrorMessage(e,fallback));
   if(account){
-    const runSync=async()=>{setSync("syncing");setMessage("");try{if(!(await hasUploadedProfile(account.onlineUserId)))await uploadInitialProfile(account.onlineUserId);await syncXpLedger(account.onlineUserId);setSync("synced");setMessage("Offline and online XP were added together without duplicates.");}catch(e){setSync("attention");fail(e,"Synchronization failed.")}};
+    const runSync=async()=>{setSync("syncing");setMessage("");try{if(!(await hasUploadedProfile(account.onlineUserId)))await uploadInitialProfile(account.onlineUserId);await syncXpLedger(account.onlineUserId);await syncReaderData(account.onlineUserId);setSync("synced");setMessage("Points and Bible Reader data were safely updated online.");}catch(e){setSync("attention");fail(e,"Synchronization failed.")}};
     return <div className="account-layout"><section className="card account-profile"><div className="admin-avatar">🐑</div><h2>{account.username}{account.admin&&<span className="admin-tag">ADMIN</span>}</h2><p>{account.email} · Verified</p>{account.admin&&<div className="admin-success"><ShieldCheck size={17}/>Administrator account confirmed by Supabase</div>}<div className="code-box"><span>{account.friendCode}</span><button onClick={()=>void navigator.clipboard?.writeText(account.friendCode)}><Copy size={17}/></button></div><button className="secondary" onClick={()=>void signOutOnline().then(()=>{setAccount(null);setSync("offline")})}>Sign out</button></section><section className="card settings-list"><span className="eyebrow">ACCOUNT & SYNC</span><h2>Local profile connection</h2><div className="sync-banner"><Wifi/><div><b>{sync==="syncing"?"Synchronizing…":sync==="synced"?"Points are synchronized":"Progress needs attention"}</b><small>XP events are added once, even after offline play</small></div><button className="secondary" disabled={sync==="syncing"} onClick={()=>void runSync()}>Sync now</button></div>{message&&<p className={sync==="synced"?"admin-success":"form-error"}>{message}</p>}<div className="setting"><b>This local profile</b><small>{profile.name} · Current device</small></div></section></div>;
   }
   const signIn=async()=>{setMessage("");try{const value=await signInOnline(email,password);setAccount(value);setSync(await hasUploadedProfile(value.onlineUserId)?"synced":"attention")}catch(e){fail(e,"Sign-in failed.")}};

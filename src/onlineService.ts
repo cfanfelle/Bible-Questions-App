@@ -133,6 +133,12 @@ export async function syncXpLedger(onlineUserId: string) {
   })));
 }
 
+export async function syncReaderData(onlineUserId:string){
+  const value=await window.selah.invoke<{sourceDeviceId:string;snapshot:unknown}>("reader:sync-export",onlineUserId);
+  const {error}=await supabase.from("reader_sync_snapshots").upsert({user_id:onlineUserId,source_device_id:value.sourceDeviceId,snapshot:value.snapshot,updated_at:new Date().toISOString()},{onConflict:"user_id"});
+  if(error)throw error;
+}
+
 export async function listFriendConnections() {
   const { data, error } = await supabase.rpc("list_friend_connections");
   if (error) throw error;

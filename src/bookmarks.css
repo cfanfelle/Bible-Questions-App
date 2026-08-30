@@ -1,0 +1,21 @@
+.bookmark-shelf { margin-top: 14px; padding: 18px; }
+.bookmark-shelf > div:first-child { display: flex; align-items: baseline; justify-content: space-between; gap: 15px; }
+.bookmark-shelf p { margin: 0; color: #6d756f; font-size: 13px; }
+.bookmark-slots { display: grid; grid-template-columns: repeat(5, 1fr); gap: 9px; margin-top: 14px; }
+.bookmark-slot { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 3px 8px; min-width: 0; padding: 10px; border: 1px solid #ddd6c8; border-radius: 10px; background: #fff; }
+.bookmark-slot .bookmark-ribbon { grid-row: span 2; }
+.bookmark-slot > b { text-transform: capitalize; }
+.bookmark-slot > span { overflow: hidden; color: #6d756f; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.bookmark-slot > div { grid-column: 1 / -1; display: flex; gap: 4px; margin-top: 5px; }
+.bookmark-slot button { border: 0; border-radius: 6px; padding: 5px 7px; background: #edf1eb; color: var(--green); font-size: 11px; }
+.bookmark-slot .bookmark-go { background: var(--green); color: white; }
+.bookmark-slot .bookmark-clear { margin-left: auto; padding: 5px; }
+.bookmark-red .bookmark-ribbon { color: #b95c57; }
+.bookmark-gold .bookmark-ribbon { color: #c69b49; }
+.bookmark-green .bookmark-ribbon { color: #54806a; }
+.bookmark-blue .bookmark-ribbon { color: #4e86a0; }
+.bookmark-purple .bookmark-ribbon { color: #8067a0; }
+@media (max-width: 850px) {
+  .bookmark-shelf > div:first-child { align-items: flex-start; flex-direction: column; }
+  .bookmark-slots { grid-template-columns: repeat(2, 1fr); }
+}

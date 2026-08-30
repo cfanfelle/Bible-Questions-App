@@ -25,6 +25,14 @@ created_at TEXT NOT NULL,
 synced_at TEXT,
 FOREIGN KEY(profile_id) REFERENCES profiles(id) ON DELETE CASCADE);
 CREATE INDEX idx_xp_events_profile_sync ON xp_events(profile_id,synced_at);`
+,`CREATE TABLE chapter_bookmarks(
+profile_id INTEGER NOT NULL,
+color TEXT NOT NULL CHECK(color IN ('red','gold','green','blue','purple')),
+book_id TEXT NOT NULL,
+chapter INTEGER NOT NULL,
+updated_at TEXT NOT NULL,
+PRIMARY KEY(profile_id,color),
+FOREIGN KEY(profile_id) REFERENCES profiles(id) ON DELETE CASCADE);`
 ];
 
 export const contentSchema=`CREATE TABLE metadata(key TEXT PRIMARY KEY,value TEXT NOT NULL);

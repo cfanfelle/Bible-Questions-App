@@ -25,7 +25,6 @@ import type {
 import Reader from "./Reader";
 import Online from "./OnlineLive";
 import "./styles.css";
-import "./medal-updates.css";
 import "./avatar.css";
 import "./session-exit.css";
 import "./logo.css";
@@ -730,15 +729,6 @@ function Medals({ books }: { books: Book[] }) {
                       {m === "none" ? "Not earned" : m} · {s?.attempts ?? 0}{" "}
                       attempts
                     </small>
-                    {s?.new_questions > 0 && (
-                      <small className="question-update">
-                        {s.new_questions}{" "}
-                        {s.new_questions === 1
-                          ? "question has"
-                          : "questions have"}{" "}
-                        been added since your last quiz
-                      </small>
-                    )}
                   </div>
                 );
               })}

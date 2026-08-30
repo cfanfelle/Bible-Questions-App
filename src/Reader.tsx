@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { BookOpen, ChevronLeft, ChevronRight, Minus, Plus, Search, StickyNote, X } from 'lucide-react';
-import type { BibleTranslation, Book, Verse, VerseSearchResult } from '../shared/types';
+import { Bookmark, BookOpen, ChevronLeft, ChevronRight, Minus, Plus, Search, StickyNote, X } from 'lucide-react';
+import type { BibleTranslation, Book, ChapterBookmark, Verse, VerseSearchResult } from '../shared/types';
 import './reader.css';
 import './annotations.css';
 import './highlight-text.css';
+import './bookmarks.css';
 
 const api=<T,>(channel:string,payload?:unknown)=>window.selah.invoke<T>(channel,payload);
 const colors=['yellow','green','blue','pink','purple'] as const;
+const bookmarkColors=['red','gold','green','blue','purple'] as const;
 type ReaderTheme='paper'|'sepia'|'night';
 
 export default function Reader({books,initial,back}:{books:Book[];initial?:{bookId:string;chapter:number;from:number;to:number};back?:()=>void}){
@@ -14,8 +16,10 @@ export default function Reader({books,initial,back}:{books:Book[];initial?:{book
  const saved=(()=>{try{return JSON.parse(localStorage.getItem('bible-reader-preferences')??'{}')}catch{return{}}})();
  const [bookId,setBookId]=useState(initial?.bookId??'GEN');
  const [chapter,setChapter]=useState(initial?.chapter??1);
+ const [locationReady,setLocationReady]=useState(Boolean(initial));
  const [translationId,setTranslationId]=useState<string>(saved.translationId??'BSB');
  const [translations,setTranslations]=useState<BibleTranslation[]>([]);
+ const [bookmarks,setBookmarks]=useState<ChapterBookmark[]>([]);
  const [verses,setVerses]=useState<Verse[]>([]);
  const [loadError,setLoadError]=useState('');
  const [fontSize,setFontSize]=useState<number>(saved.fontSize??21);
@@ -31,8 +35,11 @@ export default function Reader({books,initial,back}:{books:Book[];initial?:{book
  const book=useMemo(()=>books.find(item=>item.id===bookId)??books[0],[books,bookId]);
  const translation=translations.find(item=>item.id===translationId);
  const load=()=>{setLoadError('');return api<Verse[]>('bible:chapter',{translationId,bookId,chapter}).then(setVerses).catch(error=>{setVerses([]);setLoadError(error instanceof Error?error.message:String(error))})};
+ const loadBookmarks=()=>api<ChapterBookmark[]>('chapter-bookmark:list').then(setBookmarks);
  useEffect(()=>{void api<BibleTranslation[]>('bible:translations').then(setTranslations)},[]);
- useEffect(()=>{void load()},[translationId,bookId,chapter]);
+ useEffect(()=>{if(initial)return;void api<{bookId:string;chapter:number}|null>('reading-position:get').then(position=>{if(position){setBookId(position.bookId);setChapter(position.chapter)}}).finally(()=>setLocationReady(true))},[]);
+ useEffect(()=>{if(!isQuizPassage)void loadBookmarks()},[isQuizPassage]);
+ useEffect(()=>{if(locationReady)void load()},[translationId,bookId,chapter,locationReady]);
  useEffect(()=>{if(!initial||!verses.length)return;const frame=requestAnimationFrame(()=>readerRef.current?.querySelector(`[data-verse="${initial.from}"]`)?.scrollIntoView({behavior:'smooth',block:'center'}));return()=>cancelAnimationFrame(frame)},[initial,verses]);
  useEffect(()=>{if(targetVerse===null||!verses.length)return;const frame=requestAnimationFrame(()=>{readerRef.current?.querySelector(`[data-verse="${targetVerse}"]`)?.scrollIntoView({behavior:'smooth',block:'center'});setTargetVerse(null)});return()=>cancelAnimationFrame(frame)},[targetVerse,verses]);
  useEffect(()=>{localStorage.setItem('bible-reader-preferences',JSON.stringify({fontSize,lineHeight,theme,translationId}))},[fontSize,lineHeight,theme,translationId]);
@@ -43,10 +50,13 @@ export default function Reader({books,initial,back}:{books:Book[];initial?:{book
  function highlight(verse:number,color:string|null){void api('highlight:set',{bookId,chapter,verse,color}).then(load)}
  function editNote(item:Verse){setEditingVerse(item.verse);setNoteDraft(item.note??'')}
  function saveNote(){if(editingVerse===null)return;void api('note:set',{bookId,chapter,verse:editingVerse,note:noteDraft}).then(()=>{setEditingVerse(null);void load()})}
+ function setBookmark(color:typeof bookmarkColors[number]){void api('chapter-bookmark:set',{color,bookId,chapter}).then(loadBookmarks)}
+ function clearBookmark(color:typeof bookmarkColors[number]){void api('chapter-bookmark:clear',color).then(loadBookmarks)}
  return <section ref={readerRef} className={`reader reader-${theme}`}>
   {back&&<button className="back" onClick={back}><ChevronLeft/> Back to quiz</button>}
   <div className="reader-head"><div><span className="eyebrow">{isQuizPassage?'QUIZ SOURCE PASSAGE':`${translation?.name??'BEREAN STANDARD BIBLE'} · 66 BOOKS · OFFLINE`}</span><h1>{book.name} {chapter}{isQuizPassage&&initial?`:${initial.from}${initial.to!==initial.from?`–${initial.to}`:''}`:''}</h1></div>{!isQuizPassage&&<div className="reader-selectors"><select aria-label="Bible translation" value={translationId} onChange={event=>{setTranslationId(event.target.value);setQuery('');setResults([])}}>{translations.map(item=><option value={item.id} key={item.id}>{item.abbreviation} — {item.description}</option>)}</select><select aria-label="Bible book" value={bookId} onChange={event=>openLocation(event.target.value,1)}>{books.map(item=><option value={item.id} key={item.id}>{item.name}</option>)}</select><select aria-label="Chapter" value={chapter} onChange={event=>setChapter(Number(event.target.value))}>{Array.from({length:book.chapters},(_,index)=><option value={index+1} key={index+1}>Chapter {index+1}</option>)}</select></div>}</div>
   {!isQuizPassage&&<div className="reader-tools card"><label className="bible-search"><Search size={17}/><input aria-label="Search the Bible" placeholder="Search words, phrases, or Psalms 3:3" value={query} onChange={event=>setQuery(event.target.value)}/>{query&&<button aria-label="Clear search" onClick={()=>setQuery('')}><X size={16}/></button>}</label><div className="text-controls"><button aria-label="Decrease text size" onClick={()=>setFontSize(Math.max(16,fontSize-1))}><Minus size={16}/></button><span>Text</span><button aria-label="Increase text size" onClick={()=>setFontSize(Math.min(32,fontSize+1))}><Plus size={16}/></button><select aria-label="Line spacing" value={lineHeight} onChange={event=>setLineHeight(Number(event.target.value))}><option value="1.6">Compact</option><option value="1.9">Comfortable</option><option value="2.2">Spacious</option></select><select aria-label="Reading theme" value={theme} onChange={event=>setTheme(event.target.value as ReaderTheme)}><option value="paper">Paper</option><option value="sepia">Sepia</option><option value="night">Night</option></select></div></div>}
+  {!isQuizPassage&&<section className="bookmark-shelf card"><div><span className="eyebrow">CHAPTER BOOKMARKS</span><p>Each color remembers one chapter. Marking it again replaces its previous location.</p></div><div className="bookmark-slots">{bookmarkColors.map(color=>{const mark=bookmarks.find(item=>item.color===color);return <div className={`bookmark-slot bookmark-${color}`} key={color}><Bookmark className="bookmark-ribbon" fill="currentColor"/><b>{color}</b><span>{mark?`${mark.bookName} ${mark.chapter}`:"Empty"}</span><div>{mark&&<button className="bookmark-go" onClick={()=>openLocation(mark.bookId,mark.chapter)}>Go</button>}<button onClick={()=>setBookmark(color)}>Mark here</button>{mark&&<button aria-label={`Clear ${color} bookmark`} className="bookmark-clear" onClick={()=>clearBookmark(color)}><X size={13}/></button>}</div></div>})}</div></section>}
   {query?<div className="search-results card"><b>{searching?'Searching…':`${results.length}${results.length===100?'+' : ''} results`}</b>{!searching&&results.length===0&&<p>No verses found. Try another word, phrase, or reference.</p>}{results.map(result=><button key={`${result.bookId}-${result.chapter}-${result.verse}`} onClick={()=>openLocation(result.bookId,result.chapter,result.verse)}><strong>{result.bookName} {result.chapter}:{result.verse}</strong><span>{result.text}</span></button>)}</div>:verses.length?<article className="scripture" style={{fontSize,lineHeight}}>{verses.map(item=><p data-verse={item.verse} className={initial&&item.verse>=initial.from&&item.verse<=initial.to?'temporary':''} key={item.verse}><sup>{item.verse}</sup><span className="verse-text" style={item.highlightColor?{background:`var(--highlight-${item.highlightColor})`}:undefined}>{item.text}</span>{!isQuizPassage&&item.note&&<small className="verse-note"><StickyNote size={13}/> {item.note}</small>}{!isQuizPassage&&<span className="highlights">{colors.map(color=><button aria-label={`Highlight verse ${item.verse} ${color}`} title={color} className={`swatch swatch-${color}`} onClick={()=>highlight(item.verse,color)} key={color}/>)}<button aria-label={`Remove highlight from verse ${item.verse}`} title="Remove highlight" onClick={()=>highlight(item.verse,null)}>×</button><button aria-label={`Add note to verse ${item.verse}`} title="Personal note" onClick={()=>editNote(item)}><StickyNote size={15}/></button></span>}</p>)}</article>:<div className="empty card"><BookOpen/><h3>Chapter unavailable</h3><p>{loadError||'The local Bible content could not provide this chapter.'}</p></div>}
   {editingVerse!==null&&!isQuizPassage&&<div className="note-editor card"><b>Personal note · {book.name} {chapter}:{editingVerse}</b><textarea autoFocus value={noteDraft} onChange={event=>setNoteDraft(event.target.value)} placeholder="Write a private note saved only to this profile…"/><div><button className="secondary" onClick={()=>setEditingVerse(null)}>Cancel</button><button className="secondary" onClick={()=>setNoteDraft('')}>Clear</button><button className="primary" onClick={saveNote}>Save note</button></div></div>}
   {!query&&!isQuizPassage&&<div className="chapter-nav"><button onClick={()=>move(-1)}><ChevronLeft/> Previous chapter</button><span>{book.name} {chapter} of {book.chapters}</span><button onClick={()=>move(1)}>Next chapter <ChevronRight/></button></div>}
