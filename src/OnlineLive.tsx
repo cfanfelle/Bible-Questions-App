@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Check, Copy, LockKeyhole, ShieldCheck, UserPlus, Users, Wifi } from "lucide-react";
+import { Check, Copy, Gamepad2, LockKeyhole, ShieldCheck, UserPlus, Users, Wifi } from "lucide-react";
 import type { Book, Profile } from "../shared/types";
 import {
   hasUploadedProfile, isUsernameAvailable, listFriendConnections, onlineErrorMessage,
@@ -8,11 +8,12 @@ import {
   uploadInitialProfile, type AgeGroup, type FriendConnection, type OnlineAccount,
 } from "./onlineService";
 import "./online.css";
+import CustomGame from "./CustomGame";
 
-type Section="overview"|"account"|"friends";
+type Section="overview"|"account"|"friends"|"games";
 type SyncState="offline"|"attention"|"syncing"|"synced";
 
-export default function OnlineLive({profile}: {profile:Profile;books:Book[]}) {
+export default function OnlineLive({profile,books}: {profile:Profile;books:Book[]}) {
   const [section,setSection]=useState<Section>("overview");
   const [account,setAccount]=useState<OnlineAccount|null>(null);
   const [sync,setSync]=useState<SyncState>("offline");
@@ -27,10 +28,12 @@ export default function OnlineLive({profile}: {profile:Profile;books:Book[]}) {
       <button className={section==="overview"?"active":""} onClick={()=>setSection("overview")}><Users size={16}/>Overview</button>
       <button className={section==="account"?"active":""} onClick={()=>setSection("account")}><LockKeyhole size={16}/>Account</button>
       {account&&<button className={section==="friends"?"active":""} onClick={()=>setSection("friends")}><UserPlus size={16}/>Friends</button>}
+      {account&&<button className={section==="games"?"active":""} onClick={()=>setSection("games")}><Gamepad2 size={16}/>Games</button>}
     </nav>
     {section==="overview"&&<Overview profile={profile} account={account} sync={sync} go={setSection}/>} 
     {section==="account"&&<Account profile={profile} account={account} setAccount={setAccount} sync={sync} setSync={setSync}/>} 
     {section==="friends"&&account&&<Friends userId={account.onlineUserId}/>}
+    {section==="games"&&account&&<CustomGame books={books}/>}
   </section>;
 }
 

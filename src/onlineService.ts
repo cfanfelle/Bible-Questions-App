@@ -4,6 +4,8 @@ import { supabase } from "./supabase";
 export type AgeGroup = "under13" | "13to17" | "18plus";
 export interface OnlineAccount { onlineUserId:string;email:string;username:string;ageGroup:AgeGroup;friendCode:string;verified:boolean;admin:boolean }
 export interface FriendConnection { id:string;userId:string;username:string;status:"pending"|"accepted";direction:"incoming"|"outgoing"|"friend" }
+export interface MultiplayerQuestion {bookId:string;bookName:string;chapter:number;verseStart:number;verseEnd:number;text:string;choices:string[];correctIndex:number}
+export interface MultiplayerState {code:string;host:boolean;status:"lobby"|"reading"|"answering"|"result"|"finished";questionSeconds:number;readingSeconds:number;currentIndex:number;questionCount:number;phaseStartedAt:string|null;question:(Omit<MultiplayerQuestion,"correctIndex"|"choices">&{choices:string[]|null;correctIndex:number|null})|null;answer:{selectedIndex:number;correct:boolean;points:number}|null;players:{userId:string;username:string;score:number}[]}
 
 export function subscribeToOnlineUsers(userId:string,onChange:(userIds:Set<string>)=>void){
   const channel=supabase.channel("online-friends",{config:{presence:{key:userId}}});
@@ -174,3 +176,13 @@ export async function removeFriendConnection(id: string) {
   const { error } = await supabase.rpc("remove_friend_connection", { connection_id:id });
   if (error) throw error;
 }
+
+export async function createMultiplayerGame(bookIds:string[],questionCount:number,questionSeconds:number){
+  const questions=await window.selah.invoke<MultiplayerQuestion[]>("multiplayer:questions",{bookIds,count:questionCount});
+  const {data,error}=await supabase.rpc("create_multiplayer_game",{question_seconds_input:questionSeconds,questions_input:questions});
+  if(error)throw error;return String(data);
+}
+export async function joinMultiplayerGame(code:string){const {data,error}=await supabase.rpc("join_multiplayer_game",{code_input:code});if(error)throw error;return String(data)}
+export async function getMultiplayerState(code:string){const {data,error}=await supabase.rpc("multiplayer_game_state",{code_input:code});if(error)throw error;return data as MultiplayerState}
+export async function advanceMultiplayerGame(code:string){const {error}=await supabase.rpc("advance_multiplayer_game",{code_input:code});if(error)throw error}
+export async function answerMultiplayerQuestion(code:string,selectedIndex:number){const {data,error}=await supabase.rpc("answer_multiplayer_question",{code_input:code,selected_index_input:selectedIndex});if(error)throw error;return Number(data)}

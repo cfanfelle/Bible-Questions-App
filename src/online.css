@@ -428,6 +428,24 @@
   border-radius: 8px;
   background: white;
 }
+.game-number {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 18px;
+  font-weight: 700;
+}
+.game-number select {
+  padding: 11px;
+  border: 1px solid #d8d1c3;
+  border-radius: 8px;
+  background: white;
+}
+.lobby-actions button,
+.round-result > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
 .game-summary {
   display: flex;
   justify-content: space-between;
