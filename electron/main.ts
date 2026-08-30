@@ -13,16 +13,33 @@ const here=path.dirname(fileURLToPath(import.meta.url)); let user:Database, cont
 const isoDay=()=>new Date().toLocaleDateString('en-CA'); const now=()=>new Date().toISOString();
 function awardXp(profileId:number,amount:number,source:string){user.prepare('UPDATE profiles SET xp=xp+? WHERE id=?').run(amount,profileId);user.prepare('INSERT INTO xp_events(id,profile_id,amount,source,created_at) VALUES(?,?,?,?,?)').run(randomUUID(),profileId,amount,source,now());}
 function configureAutoUpdates(win:InstanceType<typeof BrowserWindow>){
+ type UpdateState={state:'checking'|'up-to-date'|'available'|'downloaded'|'error';version?:string};
+ let status:UpdateState=app.isPackaged?{state:'checking'}:{state:'up-to-date'};
+ let checking=false;
+ const publish=(next:UpdateState)=>{status=next;if(!win.isDestroyed())win.webContents.send('update:status',status);};
+ const check=async()=>{
+  if(!app.isPackaged||checking)return status;
+  checking=true;publish({state:'checking'});
+  try{await autoUpdater.checkForUpdates();}catch{ /* The updater error event publishes the status. */ }
+  finally{checking=false;}
+  return status;
+ };
+ ipcMain.handle('update:status',()=>status);
+ ipcMain.handle('update:check',()=>check());
  if(!app.isPackaged)return;
  autoUpdater.autoDownload=true;
  autoUpdater.autoInstallOnAppQuit=true;
+ autoUpdater.on('checking-for-update',()=>publish({state:'checking'}));
+ autoUpdater.on('update-available',info=>publish({state:'available',version:info.version}));
+ autoUpdater.on('update-not-available',()=>publish({state:'up-to-date'}));
  autoUpdater.on('update-downloaded',async info=>{
+  publish({state:'downloaded',version:info.version});
   const result=await electron.dialog.showMessageBox(win,{type:'info',title:'Update ready',message:`Bible Trivia ${info.version} is ready.`,detail:'Restart now to install it. Your profiles and progress will be preserved.',buttons:['Restart and update','Later'],defaultId:0,cancelId:1});
   if(result.response===0)autoUpdater.quitAndInstall(false,true);
  });
- autoUpdater.on('error',error=>console.error('Automatic update error:',error));
- setTimeout(()=>void autoUpdater.checkForUpdatesAndNotify(),10000);
- setInterval(()=>void autoUpdater.checkForUpdatesAndNotify(),6*60*60*1000);
+ autoUpdater.on('error',error=>{publish({state:'error'});console.error('Automatic update error:',error)});
+ win.webContents.once('did-finish-load',()=>void check());
+ setInterval(()=>void check(),60*60*1000);
 }
 function registerBibleSearch(){
  ipcMain.handle('bible:translations',()=>content.prepare('SELECT id,name,abbreviation,description,license FROM translations ORDER BY sort_order').all());

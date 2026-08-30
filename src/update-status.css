@@ -1,0 +1,39 @@
+.update-status {
+  align-items: center;
+  background: #edf2eb;
+  border-radius: 999px;
+  color: var(--green);
+  display: flex;
+  font-size: 12px;
+  font-weight: 700;
+  gap: 7px;
+  justify-content: center;
+  margin: 14px auto 22px;
+  max-width: 100%;
+  padding: 7px 12px;
+  width: max-content;
+}
+
+.update-status.available,
+.update-status.downloaded {
+  background: #fff4d6;
+  color: #80601f;
+}
+
+.update-status.error {
+  background: #f1efea;
+  color: #777;
+}
+
+.update-spinner {
+  animation: update-spin .7s linear infinite;
+  border: 2px solid #9bad9f;
+  border-radius: 50%;
+  border-top-color: var(--green);
+  height: 13px;
+  width: 13px;
+}
+
+@keyframes update-spin {
+  to { transform: rotate(360deg); }
+}

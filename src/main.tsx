@@ -28,6 +28,7 @@ import "./styles.css";
 import "./avatar.css";
 import "./session-exit.css";
 import "./logo.css";
+import "./update-status.css";
 const api = <T,>(c: string, p?: unknown) => window.selah.invoke<T>(c, p);
 const medal = (p: number): Medal =>
   p >= 100
@@ -168,12 +169,32 @@ function ProfileGate({
 }) {
   const [name, setName] = useState(""),
     [avatar, setAvatar] = useState("lamb");
+  type UpdateStatus={state:'checking'|'up-to-date'|'available'|'downloaded'|'error';version?:string};
+  const [updateStatus,setUpdateStatus]=useState<UpdateStatus>({state:'checking'});
+  useEffect(()=>{
+    const started=Date.now();
+    let timer:ReturnType<typeof setTimeout>|undefined;
+    const show=(value:UpdateStatus)=>{
+      const delay=value.state==='up-to-date'?Math.max(0,3000-(Date.now()-started)):0;
+      if(timer)clearTimeout(timer);
+      timer=setTimeout(()=>setUpdateStatus(value),delay);
+    };
+    const off=window.selah.onUpdateStatus(value=>show(value as UpdateStatus));
+    void api<UpdateStatus>('update:status').then(show);
+    void api<UpdateStatus>('update:check').then(show);
+    return ()=>{off();if(timer)clearTimeout(timer)};
+  },[]);
+  const updateLabel=updateStatus.state==='checking'?'Checking for the latest update…':updateStatus.state==='up-to-date'?'Up to date':updateStatus.state==='available'?`Downloading update ${updateStatus.version??''}…`:updateStatus.state==='downloaded'?`Update ${updateStatus.version??''} ready`:'Update check unavailable';
   return (
     <div className="gate">
       <div className="gate-card">
         <span className="brandmark big cross" role="img" aria-label="Cross" />
         <h1>Welcome to Bible Trivia</h1>
         <p>A quiet place to read, learn, and remember.</p>
+        <div className={`update-status ${updateStatus.state}`} role="status" aria-live="polite">
+          {updateStatus.state==='checking'&&<span className="update-spinner" aria-hidden="true" />}
+          {updateLabel}
+        </div>
         {boot.profiles.length > 0 && (
           <div className="profiles">
             {boot.profiles.map((p) => (
