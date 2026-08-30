@@ -43,7 +43,7 @@
       {
         "provider": "github",
         "owner": "cfanfelle",
-        "repo": "Bible-Questions-App",
+        "repo": "Bible-Trivia",
         "releaseType": "release"
       }
     ],
