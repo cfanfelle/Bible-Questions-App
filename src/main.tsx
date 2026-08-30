@@ -338,7 +338,7 @@ function Chooser({
       <h1>{mode === "full" ? "Full Book Quizzes" : "Practice a passage"}</h1>
       <p>
         {mode === "full"
-          ? "Complete every available question in a book. Only these quizzes earn medals."
+          ? "Answer 15 randomly selected questions from one book, or every available question when the book has fewer than 15. Only these quizzes earn medals."
           : "Choose a chapter or range. Practice earns XP without affecting medals."}
       </p>
       <div className="form-card card">
